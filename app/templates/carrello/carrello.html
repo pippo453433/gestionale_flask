@@ -1,0 +1,221 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}🛒 Carrello{% endblock %}
+
+{% block content %}
+
+<style>
+    .cart-card {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        transition: 0.2s ease;
+    }
+
+    .cart-card:hover {
+        box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    }
+
+    .cart-table th {
+        background: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 13px;
+        color: #555;
+    }
+
+    .cart-table td {
+        vertical-align: middle;
+        font-size: 15px;
+    }
+
+    .qty-input {
+        width: 80px;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .btn-update, .btn-order, .btn-clear {
+        border-radius: 6px;
+        padding: 6px 14px;
+        font-size: 14px;
+        font-weight: 500;
+        color: white;
+        border: none;
+    }
+
+    .btn-update { background: #0d6efd; }
+    .btn-update:hover { background: #0b5ed7; }
+
+    .btn-order { background: #198754; }
+    .btn-order:hover { background: #157347; }
+
+    .btn-clear { background: #ffc107; color: black; }
+    .btn-clear:hover { background: #e0a800; }
+
+    .btn-remove {
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-size: 14px;
+    }
+
+    .cart-total-box {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 18px;
+        font-size: 18px;
+        font-weight: 600;
+        text-align: right;
+        margin-top: 20px;
+    }
+
+    .cart-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 20px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .cart-actions form {
+        margin: 0;
+    }
+</style>
+
+<div class="container mt-4">
+
+    <h2 class="mb-4">🛒 Il tuo carrello</h2>
+
+    {% if cart.cart %}
+
+        <div class="cart-card">
+
+            <!-- FORM AGGIORNA -->
+            <form method="POST" action="{{ url_for('main.cart_view') }}">
+                <table class="table cart-table">
+                    <thead>
+                        <tr>
+                            <th>Prodotto</th>
+                            <th>Prezzo</th>
+                            <th>Quantità</th>
+                            <th>Totale</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for item in cart.get_items() %}
+                        <tr>
+                            <td>{{ item.nome }}</td>
+                            <td>€ {{ item.price }}</td>
+                            <td>
+                                <div class="d-flex flex-column align-items-start">
+                                    <input type="number"
+                                           name="qty_{{ item.id }}"
+                                           value="{{ item.qty }}"
+                                           min="1"
+                                           max="{{ item.max_qty }}"
+                                           class="form-control qty-input"
+                                           data-price="{{ item.price }}">
+
+                                    <small class="text-muted mt-1">
+                                        Disponibili: {{ item.max_qty }}
+                                    </small>
+                                </div>
+                            </td>
+                            <td>€ {{ item.qty * item.price }}</td>
+                            <td>
+                                <a href="{{ url_for('main.cart_remove', id=item.id) }}"
+                                   class="btn btn-danger btn-sm btn-remove">
+                                   🗑️
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="cart-total-box" id="cart-totale">
+                    Totale: € {{ cart.get_total() }}
+                </div>
+
+                <!-- BOTTONI AFFIANCATI -->
+                <div class="cart-actions">
+
+                    <!-- Aggiorna -->
+                    <button type="submit" class="btn btn-update">💾 Aggiorna</button>
+
+                    <!-- Ordina -->
+                    {% if current_user.is_authenticated and current_user.ruolo == "CLIENTE" %}
+                    </form> <!-- chiudo form aggiornamento prima di aprire gli altri -->
+                    <form method="POST" action="{{ url_for('main.checkout') }}">
+                        <button type="submit" class="btn btn-order">🧾 Ordina</button>
+                    </form>
+                    {% else %}
+                    </form>
+                    {% endif %}
+
+                    <!-- Svuota -->
+                    <form method="GET" action="{{ url_for('main.cart_clear') }}">
+                        <button type="submit" class="btn btn-clear">🧹 Svuota</button>
+                    </form>
+
+                </div>
+
+        </div>
+
+    {% else %}
+        <p class="text-muted">Il carrello è vuoto.</p>
+    {% endif %}
+
+</div>
+
+<!-- 🔧 JS: Controllo quantità + Totale dinamico + Disabilita Ordina -->
+<script>
+function aggiornaTotale() {
+    let totale = 0;
+    document.querySelectorAll('.qty-input').forEach(input => {
+        const prezzo = parseFloat(input.dataset.price);
+        const qty = parseInt(input.value);
+        if (!isNaN(prezzo) && !isNaN(qty) && qty > 0) {
+            totale += prezzo * qty;
+        }
+    });
+    document.getElementById('cart-totale').textContent = "Totale: € " + totale.toFixed(2);
+}
+
+function validaQuantita() {
+    let valido = true;
+    document.querySelectorAll('.qty-input').forEach(input => {
+        const qty = parseInt(input.value);
+        const min = parseInt(input.min);
+        const max = parseInt(input.max);
+        if (isNaN(qty) || qty < min || qty > max) {
+            valido = false;
+        }
+    });
+
+    const btnOrdina = document.querySelector('.btn-order');
+    if (btnOrdina) {
+        btnOrdina.disabled = !valido;
+        btnOrdina.style.opacity = valido ? "1" : "0.5";
+        btnOrdina.title = valido ? "" : "Correggi le quantità prima di ordinare";
+    }
+}
+
+document.querySelectorAll('.qty-input').forEach(input => {
+    input.addEventListener('input', () => {
+        aggiornaTotale();
+        validaQuantita();
+    });
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+    aggiornaTotale();
+    validaQuantita();
+});
+</script>
+
+{% endblock %}

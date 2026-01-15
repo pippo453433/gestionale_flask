@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Pagamento Ordine</title>
+  <script src="https://js.stripe.com/v3/"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .checkout-container {
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    label {
+      font-weight: bold;
+      margin-top: 10px;
+      display: block;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    #submit {
+      width: 100%;
+      padding: 15px;
+      background: #6772e5;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    #submit:hover {
+      background: #5469d4;
+    }
+
+    #payment-message {
+      color: red;
+      margin-top: 10px;
+    }
+
+    .order-summary {
+      background: #fafafa;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body 
+    data-stripe-key="{{ stripe_public_key }}" 
+    data-order-amount="{{ amount }}"
+>
+
+  <div class="checkout-container">
+
+    <!-- COLONNA SINISTRA: DATI SPEDIZIONE -->
+    <div>
+      <h2>Dati di spedizione</h2>
+
+      <label>Nome</label>
+      <input type="text" id="nome">
+
+      <label>Cognome</label>
+      <input type="text" id="cognome">
+
+      <label>Indirizzo</label>
+      <input type="text" id="indirizzo">
+
+      <label>Città</label>
+      <input type="text" id="citta">
+
+      <label>CAP</label>
+      <input type="text" id="cap">
+
+      <label>Provincia</label>
+      <input type="text" id="provincia">
+
+      <label>Telefono</label>
+      <input type="text" id="telefono">
+
+      <label>Email</label>
+      <input type="email" id="email">
+    </div>
+
+    <!-- COLONNA DESTRA: PAGAMENTO -->
+    <div>
+      <h2>Pagamento</h2>
+
+      <label>Nome sulla carta</label>
+      <input type="text" id="card-name">
+
+      <label>Numero carta</label>
+      <div id="card-element" style="padding: 10px; border: 1px solid #ccc; border-radius: 5px;"></div>
+
+      <button id="submit">Paga ora</button>
+      <div id="payment-message"></div>
+
+      <div class="order-summary">
+        <h3>Riepilogo ordine</h3>
+        <p>Totale: <strong>€ {{ amount / 100 }}</strong></p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 🔥 JavaScript pulito, senza Jinja -->
+  <script>
+    const stripeKey = document.body.dataset.stripeKey;
+    const orderAmount = parseInt(document.body.dataset.orderAmount);
+
+    const stripe = Stripe(stripeKey);
+    const elements = stripe.elements();
+    const cardElement = elements.create("card");
+    cardElement.mount("#card-element");
+
+    document.getElementById("submit").addEventListener("click", async (e) => {
+      e.preventDefault();
+
+      const res = await fetch("/create-payment-intent", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          amount: orderAmount,
+          nome: document.getElementById("nome").value,
+          cognome: document.getElementById("cognome").value,
+          indirizzo: document.getElementById("indirizzo").value,
+          citta: document.getElementById("citta").value,
+          cap: document.getElementById("cap").value,
+          provincia: document.getElementById("provincia").value,
+          telefono: document.getElementById("telefono").value,
+          email: document.getElementById("email").value
+        })
+      });
+
+      const data = await res.json();
+
+      const result = await stripe.confirmCardPayment(data.clientSecret, {
+        payment_method: {
+          card: cardElement,
+          billing_details: {
+            name: document.getElementById("card-name").value,
+            email: document.getElementById("email").value,
+            phone: document.getElementById("telefono").value,
+            address: {
+              line1: document.getElementById("indirizzo").value,
+              city: document.getElementById("citta").value,
+              postal_code: document.getElementById("cap").value,
+              state: document.getElementById("provincia").value
+            }
+          }
+        }
+      });
+
+      if (result.error) {
+        document.getElementById("payment-message").innerText = result.error.message;
+      } else {
+        if (result.paymentIntent.status === "succeeded") {
+          window.location.href = "/success";
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>

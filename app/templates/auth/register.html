@@ -1,0 +1,86 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Registrazione{% endblock %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 500px;">
+    <h2 class="mb-4 text-center">Crea un nuovo account</h2>
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+            {{ form.username.label(class="form-label") }}
+            {{ form.username(class="form-control", placeholder="Inserisci username") }}
+            {% for error in form.username.errors %}
+               <div class="text-danger">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.email.label(class="form-label") }}
+            {{ form.email(class="form-control", placeholder="Inserisci email") }}
+            {% for error in form.email.errors %}
+                <div class="text-danger">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.password.label(class="form-label") }}
+            {{ form.password(class="form-control", placeholder="Inserisci password") }}
+            {% for error in form.password.errors %}
+                <div class="text-danger">{{ error }}</div>
+            {% endfor %}
+            <ul id="password-rules" class="mt-2" style="list-style: none; padding-left: 0;">
+                <li id="rule-length" style="color: red;">• Minimo 6 caratteri</li>
+                <li id="rule-upper" style="color: red;">• Almeno una lettera maiuscola</li>
+                <li id="rule-lower" style="color: red;">• Almeno una lettera minuscola</li>
+                <li id="rule-number" style="color: red;">• Almeno un numero</li>
+                <li id="rule-special" style="color: red;">• Almeno un carattere speciale (!@#$%^&*)</li>
+            </ul>
+        </div>
+
+        <div class="mb-3">
+            {{ form.password2.label(class="form-label") }}
+            {{ form.password2(class="form-control", placeholder="Conferma password") }}
+            {% for error in form.password2.errors %}
+               <div class="text-danger">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.ruolo.label(class="form-label") }}
+            {{ form.ruolo(class="form-select") }}
+        </div>
+
+        <div class="d-grid">
+            {{ form.submit(class="btn btn-success") }}
+        </div>
+    </form>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const passwordField = document.getElementById("password");
+
+    const ruleLength = document.getElementById("rule-length");
+    const ruleUpper = document.getElementById("rule-upper");
+    const ruleLower = document.getElementById("rule-lower");
+    const ruleNumber = document.getElementById("rule-number");
+    const ruleSpecial = document.getElementById("rule-special");
+
+    passwordField.addEventListener("input", function () {
+        const value = passwordField.value;
+
+        ruleLength.style.color = value.length >= 6 ? "green" : "red";
+        ruleUpper.style.color = /[A-Z]/.test(value) ? "green" : "red";
+        ruleLower.style.color = /[a-z]/.test(value) ? "green" : "red";
+        ruleNumber.style.color = /[0-9]/.test(value) ? "green" : "red";
+        ruleSpecial.style.color = /[!@#$%^&*]/.test(value) ? "green" : "red";
+    });
+});
+</script>
+{% endblock %}
+
+{% endblock %}

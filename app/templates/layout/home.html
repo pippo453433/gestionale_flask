@@ -1,0 +1,80 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<!-- 🔔 MESSAGGI FLASH -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert {{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+<!-- 🔔 FINE MESSAGGI FLASH -->
+
+<div class="dashboard">
+    <h2>Panoramica</h2>
+
+    <div class="stats-grid">
+        <div class="stat-box">
+            <h4>📂 {{ totale_categorie }}</h4>
+            <p>Totale categorie</p>
+        </div>
+
+        <div class="stat-box">
+            <h4>✔️ {{ categorie_attive }}</h4>
+            <p>Categorie attive</p>
+        </div>
+
+        <div class="stat-box">
+            <h4>❌ {{ categorie_non_attive }}</h4>
+            <p>Categorie non attive</p>
+        </div>
+
+        <div class="stat-box">
+            <h4>📊 {{ percentuale_attive }}%</h4>
+            <p>Percentuale attive</p>
+        </div>
+    </div>
+</div>
+    <section class="hero">
+        <h2>Benvenuto nel gestionale</h2>
+        <p>Gestisci categorie, prodotti</p>
+    </section>
+    <div class="section-divider"></div>
+    <section class="intro">
+        <h2>Flask funziona con ereditarietà Jinja2!</h2>
+        <p>Questa è la home estesa da <strong>base.html</strong>.</p>
+        <p>Ciao <strong>{{ nome }}</strong>!</p>
+    </section>
+    <div class="section-divider"></div>
+
+    <section class="categorie-section">
+        <h3>📦 Categorie nel database</h3>
+
+        
+        
+
+        <!-- Lista categorie -->
+        {% if categorie %}
+            <ul class="categorie-list">
+                {% for cat in categorie %}
+                    <li class="category-item">
+                        <div class="cat-header">
+                            <span class="cat-icon">📁</span>
+                            <strong>{{ cat.nome }}</strong>
+                            <span class="cat-icon">
+                                {% if cat.attiva %}✅{% else %}❌{% endif %}
+                            </span>
+                        </div>
+                        <p class="cat-desc">{{ cat.descrizione }}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="no-cat">Nessuna categoria presente nel database.</p>
+        {% endif %}
+    </section>
+
+{% endblock %}

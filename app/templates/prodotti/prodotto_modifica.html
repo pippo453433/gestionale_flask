@@ -1,0 +1,50 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}✏️ Modifica Prodotto{% endblock %}
+
+{% block content %}
+<h2>✏️ Modifica Prodotto</h2>
+
+<form method="POST" class="form-box">
+
+    <div class="form-group">
+        <label>Nome</label>
+        <input type="text" name="nome" value="{{ prodotto.nome }}" required class="form-control">
+    </div>
+
+    <div class="form-group">
+        <label>Codice</label>
+        <input type="text" name="codice" value="{{ prodotto.codice }}" required class="form-control">
+    </div>
+
+    <div class="form-group">
+        <label>Prezzo</label>
+        <input type="number" step="0.01" name="prezzo" value="{{ prodotto.prezzo }}" class="form-control">
+    </div>
+
+    <div class="form-group">
+        <label>Quantità</label>
+        <input type="number" name="quantita" value="{{ prodotto.quantita }}" class="form-control">
+    </div>
+
+    <div class="form-group">
+        <label>Descrizione</label>
+        <textarea name="descrizione" class="form-control">{{ prodotto.descrizione }}</textarea>
+    </div>
+
+    <div class="form-group">
+        <label>Fornitori associati</label>
+        <select name="fornitori" multiple class="form-control">
+            {% for f in fornitori %}
+                <option value="{{ f.id }}" {% if f in prodotto.fornitori %}selected{% endif %}>
+                    {{ f.ragione_sociale }} ({{ f.partita_iva }})
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-success">💾 Salva modifiche</button>
+    <a href="{{ url_for('main.dettaglio_prodotto', id=prodotto.id) }}" class="btn btn-secondary">⬅ Torna al dettaglio</a>
+
+</form>
+{% endblock %}

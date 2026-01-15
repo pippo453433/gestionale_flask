@@ -1,0 +1,29 @@
+<h1>Fornitori</h1>
+
+<a href="{{ url_for('main.nuovo_fornitore') }}">+ Nuovo Fornitore</a>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>ID</th>
+        <th>Ragione Sociale</th>
+        <th>Partita IVA</th>
+        <th>Email</th>
+        <th>Telefono</th>
+        <th>Prodotti Associati</th>
+    </tr>
+
+    {% for f in fornitori %}
+    <tr>
+        <td>{{ f.id }}</td>
+        <td>{{ f.ragione_sociale }}</td>
+        <td>{{ f.partita_iva }}</td>
+        <td>{{ f.email }}</td>
+        <td>{{ f.telefono }}</td>
+        <td>
+            {% for p in f.prodotti %}
+                {{ p.nome }}<br>
+            {% endfor %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>

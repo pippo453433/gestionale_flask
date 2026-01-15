@@ -1,0 +1,47 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}✏️ Modifica Fornitore{% endblock %}
+
+{% block content %}
+<h2>✏️ Modifica Fornitore</h2>
+
+<form method="POST" class="form-box">
+    <input type="hidden" name="origine" value="{{ origine }}">
+
+    <div class="form-group">
+        <label>Ragione Sociale</label>
+        <input type="text" name="ragione_sociale" value="{{ f.ragione_sociale }}" required class="form-control">
+    </div>
+
+    <div class="form-group">
+        <label>Partita IVA</label>
+        <input type="text" name="partita_iva" value="{{ f.partita_iva }}" required class="form-control">
+    </div>
+
+    <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email" value="{{ f.email }}" class="form-control">
+    </div>
+
+    <div class="form-group">
+        <label>Telefono</label>
+        <input type="text" name="telefono" value="{{ f.telefono }}" class="form-control">
+    </div>
+
+    <div class="form-group">
+        <label>Prodotti associati</label>
+        <select name="prodotti" multiple size="6" class="form-control">
+            {% for p in prodotti %}
+                <option value="{{ p.id }}" {% if p in f.prodotti %}selected{% endif %}>
+                    {{ p.nome }} ({{ p.codice }})
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-success">💾 Salva modifiche</button>
+        <a href="{{ url_for('main.dettaglio_fornitore', id=f.id, origine=origine) }}" class="btn btn-secondary">⬅ Torna al dettaglio</a>
+    </div>
+</form>
+{% endblock %}

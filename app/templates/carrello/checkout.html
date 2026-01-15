@@ -1,0 +1,64 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="mb-4">Conferma Ordine</h2>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Riepilogo Carrello</h5>
+
+            <ul class="list-group mb-3">
+                {% for item in cart %}
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>{{ item['nome'] }} × {{ item['qty'] }}</span>
+                    <strong>€ {{ item['qty'] * item['prezzo'] }}</strong>
+                </li>
+                {% endfor %}
+            </ul>
+
+            <div class="d-flex justify-content-between">
+                <h5 class="mb-0">Totale:</h5>
+                <h5 class="mb-0">€ {{ cart.get_total() }}</h5>
+            </div>
+        </div>
+    </div>
+
+    <!-- Campo note opzionale -->
+    <form method="POST">
+        <div class="mb-3">
+            <label class="form-label">Note per l'ordine (opzionale)</label>
+            <textarea name="note" class="form-control" rows="3"
+                      placeholder="Aggiungi eventuali richieste o informazioni..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-success d-flex align-items-center gap-2"
+                onclick="startLoading(this)">
+            <span class="btn-text">✔ Conferma Ordine</span>
+            <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+        </button>
+
+        <a href="{{ url_for('main.cart_detail') }}" class="btn btn-secondary ms-2">
+            ↩ Torna al Carrello
+        </a>
+    </form>
+
+</div>
+<!-- 🔥 Script animazione bottone -->
+<script>
+function startLoading(btn) {
+    btn.disabled = true;
+
+    // Cambia testo
+    btn.querySelector('.btn-text').textContent = "Elaborazione...";
+
+    // Mostra la rotellina
+    btn.querySelector('.spinner-border').classList.remove('d-none');
+
+    // Invia il form
+    btn.form.submit();
+}
+</script>
+
+{% endblock %}

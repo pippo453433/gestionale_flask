@@ -1,0 +1,43 @@
+{% extends 'layout/base.html' %}
+{% block title %}Lista Prodotti{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">📦 Prodotti disponibili</h2>
+
+    <div class="row">
+        {% for p in prodotti.items %}
+            <div class="col-md-4 mb-3">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ p.nome }}</h5>
+                        <p class="card-text">{{ p.descrizione[:80] }}...</p>
+                        <div class="mt-auto">
+                            <a href="{{ url_for('main.dettaglio_prodotto', id=p.id) }}" class="btn btn-sm btn-outline-dark">Dettagli</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Paginazione -->
+    <nav aria-label="Paginazione">
+        <ul class="pagination justify-content-center">
+            {% if prodotti.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ prodotti.prev_num }}">← Precedente</a>
+                </li>
+            {% endif %}
+            <li class="page-item disabled">
+                <span class="page-link">Pagina {{ prodotti.page }} di {{ prodotti.pages }}</span>
+            </li>
+            {% if prodotti.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ prodotti.next_num }}">Successiva →</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endblock %}

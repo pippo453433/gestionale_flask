@@ -1,0 +1,13 @@
+{% extends 'layout/base.html' %}
+{% block title %}Dettaglio Prodotto{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ prodotto.nome }}</h2>
+    <p>{{ prodotto.descrizione }}</p>
+    <p><strong>Prezzo:</strong> €{{ prodotto.prezzo }}</p>
+    <p><strong>Quantità disponibile:</strong> {{ prodotto.quantita }}</p>
+
+    <a href="{{ url_for('main.prodotti') }}" class="btn btn-outline-secondary">← Torna alla lista</a>
+</div>
+{% endblock %}

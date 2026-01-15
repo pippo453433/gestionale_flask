@@ -1,0 +1,86 @@
+{% extends 'layout/base.html' %}
+{% block title %}📦 I miei ordini{% endblock %}
+
+{% block content %}
+
+<style>
+    .order-card {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        transition: 0.2s ease;
+    }
+
+    .order-card:hover {
+        box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    }
+
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        color: white;
+    }
+
+    .pending { background: #ffc107; color: black; }
+    .confermato { background: #0d6efd; }
+    .spedito { background: #198754; }
+    .consegnato { background: #6c757d; }
+</style>
+
+<div class="container mt-4">
+
+    <h2 class="mb-4">📦 I miei ordini</h2>
+
+    {% if ordini %}
+        <div class="order-card">
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Data</th>
+                        <th>Stato</th>
+                        <th>Totale</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for ordine in ordini %}
+                    <tr>
+                        <td>#{{ "%05d"|format(ordine.id) }}</td>
+                        <td>{{ ordine.data_ordine.strftime('%d/%m/%Y %H:%M') }}</td>
+
+                        <td>
+                            {% set s = ordine.stato.lower() %}
+                            <span class="status-badge {{ s }}">
+                                {{ ordine.stato }}
+                            </span>
+                        </td>
+
+                        <td>€ {{ ordine.totale }}</td>
+
+                        <td>
+                            <a href="{{ url_for('main.dettaglio_ordine', id=ordine.id) }}"
+                               class="btn btn-sm btn-primary">
+                                🔍 Dettagli
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% else %}
+        <p class="text-muted">Non hai ancora effettuato ordini.</p>
+    {% endif %}
+
+</div>
+
+{% endblock %}

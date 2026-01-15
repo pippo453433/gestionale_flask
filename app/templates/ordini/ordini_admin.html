@@ -1,0 +1,156 @@
+{% extends 'layout/base.html' %}
+{% block title %}📦 Gestione ordini{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="mb-4">📦 Tutti gli ordini</h2>
+
+    <!-- FILTRI -->
+    <form method="GET" class="row g-3 mb-4">
+
+        <!-- 🔍 Filtro per stato -->
+        <div class="col-md-3">
+            <label class="form-label">Stato</label>
+            <select name="stato" class="form-select">
+                <option value="Tutti">TUTTI</option>
+                {% for s in stati %}
+                    <option value="{{ s }}" {% if stato_corrente == s %}selected{% endif %}>
+                        {{ s }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- 📅 Filtro per data -->
+        <div class="col-md-3">
+            <label class="form-label">Da</label>
+            <input type="date" name="data_da" class="form-control"
+                   value="{{ request.args.get('data_da', '') }}">
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">A</label>
+            <input type="date" name="data_a" class="form-control"
+                   value="{{ request.args.get('data_a', '') }}">
+        </div>
+
+        <!-- 🧑‍💼 Filtro per cliente -->
+        <div class="col-md-3">
+            <label class="form-label">Cliente</label>
+            <input type="text" name="cliente" class="form-control"
+                   placeholder="Username cliente"
+                   value="{{ request.args.get('cliente', '') }}">
+        </div>
+
+        <!-- 🔎 Pulsante cerca -->
+        <div class="col-12 text-end">
+            <button type="submit" class="btn btn-primary">🔍 Filtra</button>
+        </div>
+    </form>
+
+    <!-- TABELLA ORDINI -->
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Data</th>
+                <th>Pagamento</th>
+                <th>Stato</th>
+                <th>Totale</th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for ordine in ordini.items %}
+            <tr>
+
+                <!-- ID FORMATTATO -->
+                <td>#{{ "%05d"|format(ordine.id) }}</td>
+
+                <td>
+                    {{ ordine.cliente.username }}
+                    <br>
+                    <small class="text-muted">{{ ordine.cliente.email }}</small>
+                </td>
+                <td>{{ ordine.data_ordine.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <!-- ⭐ COLONNA PAGAMENTO QUI -->
+                <td>
+                    {% if ordine.pagato %}
+                        <span class="badge bg-success">Pagato</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark">Non pagato</span>
+                    {% endif %}
+                </td>
+                
+                
+
+                <td>
+                    {% set s = ordine.stato.lower() %}
+                    <span class="status-badge {{ s }}"> {{ ordine.stato }}</span>  
+                </td>
+
+                <td>€ {{ "%.2f"|format(ordine.totale) }}</td>
+
+                <td class="text-end">
+
+                    <!-- FORM CAMBIO STATO INLINE -->
+                    <form method="POST" action="{{ url_for('main.modifica_stato_ordine', id=ordine.id) }}" class="d-inline">
+                        <select name="stato" class="form-select form-select-sm d-inline w-auto">
+                            {% for s in stati %}
+                                <option value="{{ s }}" {% if ordine.stato == s %}selected{% endif %}>
+                                    {{ s }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn btn-sm btn-success">✔</button>
+                    </form>
+
+                    <!-- DETTAGLI -->
+                    <a href="{{ url_for('main.dettaglio_ordine', id=ordine.id) }}"
+                       class="btn btn-sm btn-outline-secondary">
+                        🔍 Dettagli
+                    </a>
+
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- PAGINAZIONE -->
+    <nav>
+        <ul class="pagination justify-content-center">
+
+            {% if ordini.has_prev %}
+            <li class="page-item">
+                <a class="page-link"
+                   href="?page={{ ordini.prev_num }}&{{ request.query_string.decode() }}">«</a>
+            </li>
+            {% endif %}
+
+            {% for p in ordini.iter_pages() %}
+                {% if p %}
+                    <li class="page-item {% if p == ordini.page %}active{% endif %}">
+                        <a class="page-link"
+                           href="?page={{ p }}&{{ request.query_string.decode() }}">{{ p }}</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if ordini.has_next %}
+            <li class="page-item">
+                <a class="page-link"
+                   href="?page={{ ordini.next_num }}&{{ request.query_string.decode() }}">»</a>
+            </li>
+            {% endif %}
+
+        </ul>
+    </nav>
+
+</div>
+{% endblock %}

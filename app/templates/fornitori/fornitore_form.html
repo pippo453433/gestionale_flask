@@ -1,0 +1,26 @@
+<h1>Nuovo Fornitore</h1>
+
+<form method="POST">
+
+    <label>Ragione Sociale</label><br>
+    <input type="text" name="ragione_sociale" required><br><br>
+
+    <label>Partita IVA</label><br>
+    <input type="text" name="partita_iva" required><br><br>
+
+    <label>Email</label><br>
+    <input type="email" name="email"><br><br>
+
+    <label>Telefono</label><br>
+    <input type="text" name="telefono"><br><br>
+
+    <label>Prodotti associati</label><br>
+    <select name="prodotti" multiple size="5">
+        {% for p in prodotti %}
+            <option value="{{ p.id }}">{{ p.nome }}</option>
+        {% endfor %}
+    </select>
+    <br><br>
+
+    <button type="submit">Salva</button>
+</form>

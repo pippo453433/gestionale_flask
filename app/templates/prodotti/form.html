@@ -1,0 +1,63 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Prodotto{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2 class="mb-4">{{ prodotto.nome if prodotto else 'Nuovo prodotto' }}</h2>
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+            {{ form.codice.label(class="form-label") }}
+            {{ form.codice(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.nome.label(class="form-label") }}
+            {{ form.nome(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.descrizione.label(class="form-label") }}
+            {{ form.descrizione(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.prezzo.label(class="form-label") }}
+            {{ form.prezzo(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.quantita.label(class="form-label") }}
+            {{ form.quantita(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.categoria.label(class="form-label") }}
+            {{ form.categoria(class="form-select") }}
+        </div>
+
+        {# --- CAMPO FORNITORI --- #}
+        {% if current_user.ruolo == "ADMIN" %}
+            <!-- Gli admin possono scegliere i fornitori -->
+            <div class="mb-3">
+                {{ form.fornitori.label(class="form-label") }}
+                {{ form.fornitori(class="form-select", multiple=true) }}
+            </div>
+        {% else %}
+            <!-- I fornitori NON devono vedere questo campo -->
+            {{ form.fornitori(type="hidden") }}
+        {% endif %}
+
+        <button type="submit" class="btn btn-primary">Salva</button>
+
+        {% if current_user.ruolo == "ADMIN" %}
+            <a href="{{ url_for('main.prodotti') }}" class="btn btn-secondary ms-2">Annulla</a>
+        {% else %}
+            <a href="{{ url_for('main.prodotti_fornitore') }}" class="btn btn-secondary ms-2">Annulla</a>
+        {% endif %}
+    </form>
+</div>
+{% endblock %}

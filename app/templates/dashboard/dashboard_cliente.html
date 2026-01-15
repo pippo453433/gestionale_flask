@@ -1,0 +1,105 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Dashboard Cliente{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <!-- Titolo e benvenuto -->
+    <h2 class="mb-2">Dashboard Cliente</h2>
+    <h4 class="mb-4">Ciao {{ current_user.username }} 👋</h4>
+
+    <!-- Card di navigazione -->
+    <div class="row row-cols-1 row-cols-md-2 g-4 mb-4">
+
+        <!-- Prodotti -->
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Prodotti disponibili</h5>
+                    <p class="card-text">Visualizza tutti i prodotti attivi nel catalogo.</p>
+                    <a href="{{ url_for('main.prodotti') }}" class="btn btn-success">Vai ai prodotti</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Categorie -->
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Categorie</h5>
+                    <p class="card-text">Esplora le categorie disponibili.</p>
+                    <a href="{{ url_for('main.categorie') }}" class="btn btn-success">Vai alle categorie</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- I miei ordini -->
+        <div class="col">
+            <div class="card h-100 shadow-sm position-relative">
+
+                <!-- Badge totale ordini -->
+                <span class="badge bg-primary position-absolute top-0 end-0 m-2">
+                    {{ totale_ordini }}
+                </span>
+
+                <div class="card-body">
+                    <h5 class="card-title">I miei ordini</h5>
+                    <p class="card-text">Visualizza lo storico dei tuoi acquisti.</p>
+
+                    <!-- Badge ordini pending -->
+                    {% if pending_ordini > 0 %}
+                        <span class="badge bg-warning text-dark mb-2">
+                            {{ pending_ordini }} in attesa
+                        </span>
+                    {% endif %}
+
+                    <a href="{{ url_for('main.i_miei_ordini') }}" class="btn btn-primary mt-2">
+                        Vai agli ordini
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Ultimi 3 ordini PENDING 
+    {% if ultimi_pending %}
+    <h4 class="mt-4">Ultimi ordini in attesa</h4>
+
+    <ul class="list-group mb-4">
+        {% for ordine in ultimi_pending %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>
+                <strong>#{{ ordine.id }}</strong> – {{ ordine.data_ordine.strftime('%d/%m/%Y %H:%M') }}
+            </span>
+            <span class="badge bg-warning text-dark">PENDING</span>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}-->
+
+    <!-- Lista prodotti -->
+    <h3 class="mb-3">Prodotti disponibili</h3>
+
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+        {% for prodotto in prodotti %}
+            <div class="col">
+                <a href="{{ url_for('main.dettaglio_prodotto', id=prodotto.id) }}" class="text-decoration-none text-dark">
+                    <div class="card h-100 shadow-sm hover-card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ prodotto.nome }}</h5>
+                            <p class="card-text">Prezzo: €{{ prodotto.prezzo }}</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        {% else %}
+            <div class="col">
+                <p class="text-muted">Nessun prodotto disponibile</p>
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'layout/base.html' %}
+{% block title %}✏️ Modifica stato ordine{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-3">✏️ Modifica stato ordine #{{ ordine.id }}</h2>
+
+    <form method="POST">
+        <div class="mb-3">
+            <label for="stato" class="form-label">Nuovo stato</label>
+            <select name="stato" id="stato" class="form-select">
+                {% for s in stati %}
+                <option value="{{ s }}" {% if ordine.stato == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-success">💾 Salva</button>
+        <a href="{{ url_for('main.gestione_ordini_admin') }}" class="btn btn-secondary ms-2">↩️ Indietro</a>
+    </form>
+</div>
+{% endblock %}

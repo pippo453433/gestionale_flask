@@ -1,0 +1,80 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Dettaglio Prodotto{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="mb-3">{{ prodotto.nome }}</h2>
+
+    <p><strong>Codice:</strong> {{ prodotto.codice }}</p>
+    <p><strong>Prezzo:</strong> € {{ prodotto.prezzo }}</p>
+    <p><strong>Quantità:</strong> {{ prodotto.quantita }}</p>
+    <p><strong>Categoria:</strong> {{ prodotto.categoria.nome }}</p>
+
+    {% if prodotto.descrizione %}
+        <p><strong>Descrizione:</strong> {{ prodotto.descrizione }}</p>
+    {% else %}
+        <p class="text-muted"><em>Nessuna descrizione disponibile</em></p>
+    {% endif %}
+
+    <hr>
+
+    <h3 class="mt-3">Fornitori associati</h3>
+    <ul>
+        {% for f in prodotto.fornitori %}
+            <li>{{ f.ragione_sociale }} ({{ f.partita_iva }})</li>
+        {% else %}
+            <li class="text-muted">Nessun fornitore associato</li>
+        {% endfor %}
+    </ul>
+
+    <div class="mt-4 d-flex flex-wrap gap-2">
+
+        {# 🔧 Bottone Modifica (solo Admin o Fornitore associato) #}
+        {% if current_user.ruolo == "ADMIN" %}
+            <a href="{{ url_for('main.prodotto_update', id=prodotto.id) }}"
+               class="btn btn-warning btn-sm rounded-pill px-3">
+                ✏️ Modifica
+            </a>
+
+        {% elif current_user.ruolo == "FORNITORE" and current_user in prodotto.fornitori %}
+            <a href="{{ url_for('main.modifica_prodotto_fornitore', id=prodotto.id) }}"
+               class="btn btn-warning btn-sm rounded-pill px-3">
+                ✏️ Modifica
+            </a>
+        {% endif %}
+
+        {# 🔙 Bottone Torna alla dashboard (dinamico per ruolo) #}
+        {% if current_user.ruolo == "FORNITORE" %}
+            <a href="{{ url_for('main.dashboard_fornitore') }}"
+               class="btn btn-success btn-sm rounded-pill px-3 ms-2">
+                ⬅ Torna alla dashboard
+            </a>
+
+        {% elif current_user.ruolo == "CLIENTE" %}
+            <a href="{{ url_for('main.dashboard_cliente') }}"
+               class="btn btn-success btn-sm rounded-pill px-3 ms-2">
+                ⬅ Torna alla dashboard
+            </a>
+
+        {% elif current_user.ruolo == "ADMIN" %}
+            <a href="{{ url_for('main.dashboard_admin') }}"
+               class="btn btn-success btn-sm rounded-pill px-3 ms-2">
+                ⬅ Torna alla dashboard
+            </a>
+        {% endif %}
+        {# 🛒 Bottone Aggiungi al carrello (solo CLIENTE) #}
+        {% if current_user.is_authenticated and current_user.ruolo == "CLIENTE"     %}
+            <form action="{{ url_for('main.cart_add', id=prodotto.id) }}">
+                <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3">
+                    🛒 Aggiungi al carrello
+
+                </button>
+            </form>
+        {% endif %}
+
+    </div>
+
+</div>
+{% endblock %}

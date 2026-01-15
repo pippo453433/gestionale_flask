@@ -1,0 +1,77 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Dashboard Fornitore{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="mb-2">Dashboard Fornitore</h2>
+    <h4 class="mb-4">Ciao {{ current_user.username }} 👋</h4>
+
+    <!-- STATISTICHE -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Totale prodotti</h5>
+                    <p class="card-text fs-4">{{ totale_prodotti }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Totale pezzi</h5>
+                    <p class="card-text fs-4">{{ totale_pezzi }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CARD DI NAVIGAZIONE -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">I tuoi prodotti</h5>
+                    <p class="card-text">Gestisci i prodotti che fornisci.</p>
+                    <a href="{{ url_for('main.prodotti_fornitore') }}" class="btn btn-success">Gestisci prodotti</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Profilo Fornitore</h5>
+                    <p class="card-text">Visualizza o modifica i tuoi dati.</p>
+                    <a href="{{ url_for('main.dettaglio_fornitore', id=current_user.id) }}" class="btn btn-success">Vai al profilo</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LISTA PRODOTTI FORNITI -->
+    <h3 class="mb-3">Prodotti forniti</h3>
+
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+        {% for prodotto in prodotti %}
+            <div class="col">
+                <a href="{{ url_for('main.dettaglio_prodotto', id=prodotto.id) }}" class="text-decoration-none text-dark">
+                    <div class="card h-100 shadow-sm hover-card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ prodotto.nome }}</h5>
+                            <p class="card-text">Prezzo: €{{ prodotto.prezzo }}</p>
+                            <p class="card-text"><small>Quantità: {{ prodotto.quantita }}</small></p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        {% else %}
+            <p class="text-muted">Nessun prodotto associato.</p>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

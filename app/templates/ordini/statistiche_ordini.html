@@ -1,0 +1,76 @@
+{% extends "layout/base.html" %}
+{% block title %}📊 Statistiche Ordini{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="mb-4">📊 Statistiche Ordini</h2>
+
+    <div class="row row-cols-2 row-cols-md-3 g-4">
+
+        <div class="col">
+            <div class="card text-white bg-dark shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">📦 Totale Ordini</h6>
+                    <p class="fs-4 fw-bold mb-0">{{ totale_ordini }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card text-white bg-warning shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">🟡 In Attesa</h6>
+                    <p class="fs-5 fw-semibold text-end mb-0">{{ pending }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card text-white bg-primary shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">🔵 Confermati</h6>
+                    <p class="fs-5 fw-semibold text-end mb-0">{{ confermato }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card text-white bg-success shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">🟢 Spediti</h6>
+                    <p class="fs-5 fw-semibold text-end mb-0">{{ spedito }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card text-white bg-secondary shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">⚫ Consegnati</h6>
+                    <p class="fs-5 fw-semibold text-end mb-0">{{ consegnato }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card text-white bg-danger shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">🔴 Annullati</h6>
+                    <p class="fs-5 fw-semibold text-end mb-0">{{ consegnato }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card text-white bg-success shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">💰 Totale Incassato</h6>
+                    <p class="fs-5 fw-semibold text-end mb-0">€ {{ totale_incassato }}</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}📦 Prodotti nel Database{% endblock %}
+
+{% block content %}
+
+<div class="prodotti-header d-flex justify-content-between align-items-center mb-4">
+    <h2>📦 Elenco Prodotti</h2>
+
+    {% if current_user.is_authenticated and current_user.ruolo == "ADMIN" %}
+        <a href="{{ url_for('main.prodotto_create') }}" class="btn btn-primary">➕ Nuovo prodotto</a>
+    {% endif %}
+</div>
+
+<div class="stats-box mb-4">
+    <div class="stat">
+        <h3>{{ totale }}</h3>
+        <p>Prodotti totali</p>
+    </div>
+    <div class="stat">
+        <h3>{{ attivi }}</h3>
+        <p>Prodotti attivi</p>
+    </div>
+    <div class="stat">
+        <h3>{{ non_attivi }}</h3>
+        <p>Prodotti non attivi</p>
+    </div>
+    <div class="stat">
+        <h3>€ {{ valore_totale }}</h3>
+        <p>Valore totale magazzino</p>
+    </div>
+</div>
+
+<hr>
+
+<!-- FILTRI -->
+<form method="get" class="d-flex mb-4" style="gap: 10px;">
+    <input type="text" name="q" class="form-control"
+           placeholder="Cerca per nome o codice..."
+           value="{{ request.args.get('q', '') }}">
+
+    <select name="categoria" class="form-select">
+        <option value="">Tutte le categorie</option>
+        {% for c in categorie %}
+            <option value="{{ c.id }}"
+                {% if request.args.get('categoria', type=int) == c.id %}selected{% endif %}>
+                {{ c.nome }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <button type="submit" class="btn btn-outline-primary">Filtra</button>
+</form>
+
+{% if prodotti %}
+
+<!-- 🔥 NUOVA GRIGLIA STABILE E RESPONSIVE -->
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+
+    {% for p in prodotti %}
+    <div class="col">
+
+        <!-- CARD CLICCABILE -->
+        <a href="{{ url_for('main.dettaglio_prodotto', id=p.id) }}" class="text-decoration-none text-dark">
+
+            <div class="card h-100 shadow-sm prodotto-card">
+
+                <div class="card-body">
+
+                    <h5 class="card-title d-flex justify-content-between align-items-center">
+                        <span>🛒 {{ p.nome }}</span>
+
+                        {% if p.attivo %}
+                            <span class="badge bg-success">Attivo</span>
+                        {% else %}
+                            <span class="badge bg-danger">Non attivo</span>
+                        {% endif %}
+                    </h5>
+
+                    <p class="card-text"><strong>Codice:</strong> {{ p.codice }}</p>
+                    <p class="card-text"><strong>Prezzo:</strong> € {{ p.prezzo }}</p>
+                    <p class="card-text"><strong>Quantità:</strong> {{ p.quantita }}</p>
+                    <p class="card-text"><strong>Categoria:</strong> {{ p.categoria.nome }}</p>
+
+                    <p class="card-text">
+                        <strong>Descrizione:</strong><br>
+                        <span class="text-muted">{{ p.descrizione }}</span>
+                    </p>
+
+                    <p class="card-text">
+                        <strong>Fornitori:</strong>
+                        {% if p.fornitori %}
+                            <ul class="mb-0">
+                                {% for f in p.fornitori %}
+                                    <li>
+                                        <a href="{{ url_for('main.dettaglio_fornitore', id=f.id, origine='prodotti') }}">
+                                            {{ f.ragione_sociale }} ({{ f.partita_iva }})
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <span class="text-muted">Nessun Fornitore Associato</span>
+                        {% endif %}
+                    </p>
+
+                </div>
+
+                <!-- 🛒 Bottone Aggiungi al Carrello -->
+                {% if current_user.is_authenticated and current_user.ruolo == "CLIENTE" %}
+                <div class="card-footer bg-white border-0">
+                    <a href="{{ url_for('main.cart_add', id=p.id) }}"
+                       class="btn btn-outline-success btn-sm w-100">
+                        🛒 Aggiungi al carrello
+                    </a>
+                </div>
+                {% endif %}
+
+            </div>
+
+        </a>
+
+    </div>
+    {% endfor %}
+
+</div>
+
+{% else %}
+    <p class="text-muted">🚫 Nessun prodotto presente nel database.</p>
+{% endif %}
+
+{% endblock %}
