@@ -6,7 +6,7 @@ from app.models import db, Ordine
 webhook_bp = Blueprint('webhook_bp', __name__)
 
 @webhook_bp.route('/webhook', methods=['POST'])
-def webhook():
+def stripe_webhook():
     print("WEBHOOK LOADED")
     payload = request.data
     sig_header = request.headers.get('Stripe-Signature')
