@@ -10,6 +10,7 @@ from io import BytesIO
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition
 import base64
+print("IMPORT WEBHOOK OK")
 
 webhook_bp = Blueprint('webhook_bp', __name__)
 
