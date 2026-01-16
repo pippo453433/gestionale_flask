@@ -13,20 +13,18 @@ class Config:
     STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
     STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
 
-    # MAIL
-    MAIL_SERVER = 'smtp.gmail.com'
-    MAIL_PORT = 587
-    MAIL_USE_TLS = True
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    MAIL_DEFAULT_SENDER = ('Il tuo negozio', os.environ.get('MAIL_USERNAME'))
+    # SENDGRID
+    SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
+
 
 class ProductionConfig(Config):
     DEBUG = False
 
+
 class DevelopmentConfig(Config):
     STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
     DEBUG = True
+
 
 config = {
     'development': DevelopmentConfig,
