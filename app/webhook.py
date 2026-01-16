@@ -2,7 +2,9 @@ import stripe
 import json
 from flask import Blueprint, request, jsonify, current_app
 from app.models import db, Ordine
-
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from io import BytesIO
 webhook_bp = Blueprint('webhook_bp', __name__)
 
 @webhook_bp.route('/webhook', methods=['POST'])
@@ -35,3 +37,60 @@ def stripe_webhook():
             print("ORDINE NON TROVATO PER SESSION ID")
 
     return jsonify({'status': 'success'}), 200
+
+#route fattura pd
+def genera_fattura_pdf(ordine):
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=A4)
+
+    larghezza, altezza = A4
+    y = altezza - 50
+
+    pdf.setFont("Helvetica-Bold", 16)
+    pdf.drawString(50, y, f"Fattura Ordine #{ordine.id}")
+    y -= 30
+
+    pdf.setFont("Helvetica", 12)
+    pdf.drawString(50, y, f"Cliente: {ordine.nome} {ordine.cognome}")
+    y -= 20
+    pdf.drawString(50, y, f"Email: {ordine.email}")
+    y -= 20
+    pdf.drawString(50, y, f"Data ordine: {ordine.data_ordine.strftime('%d/%m/%Y')}")
+    y -= 30
+
+    pdf.setFont("Helvetica-Bold", 12)
+    pdf.drawString(50, y, "Dettagli ordine:")
+    y -= 20
+
+    pdf.setFont("Helvetica", 11)
+    pdf.drawString(50, y, "Prodotto")
+    pdf.drawString(250, y, "Quantità")
+    pdf.drawString(330, y, "Prezzo")
+    pdf.drawString(400, y, "Subtotale")
+    y -= 15
+    pdf.line(50, y, 550, y)
+    y -= 20
+
+    pdf.setFont("Helvetica", 11)
+
+    for det in ordine.dettagli:
+        pdf.drawString(50, y, det.prodotto.nome)
+        pdf.drawString(250, y, str(det.quantita))
+        pdf.drawString(330, y, f"€ {det.prezzo_unitario}")
+        pdf.drawString(400, y, f"€ {det.subtotale}")
+        y -= 20
+
+        # Se finisce la pagina, ne crea una nuova
+        if y < 80:
+            pdf.showPage()
+            y = altezza - 50
+
+    y -= 20
+    pdf.setFont("Helvetica-Bold", 12)
+    pdf.drawString(50, y, f"Totale ordine: € {ordine.totale}")
+
+    pdf.save()
+    buffer.seek(0)
+    return buffer
+
+

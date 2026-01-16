@@ -18,7 +18,9 @@ import stripe
 from flask import current_app
 from flask import session
 
+
 main = Blueprint('main', __name__)   # crea un blueprint chiamato "main"
+
 
 
 # ---------------------------------------------------------
@@ -975,25 +977,34 @@ def test_stripe():
 @main.route('/pagamento/<int:ordine_id>')
 @login_required
 def create_checkout_session(ordine_id):
+    import stripe
+    from flask import current_app
+    from flask_login import current_user
+
     ordine = Ordine.query.get_or_404(ordine_id)
+
+    print("CHIAVE STRIPE LETTA DA FLASK:", current_app.config['STRIPE_SECRET_KEY'])
+    print("Creo sessione Stripe per ordine:", ordine.id)
+    print("CHIAVE STRIPE:", current_app.config['STRIPE_SECRET_KEY'])
+
+    stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
 
     # Sicurezza: solo il cliente può pagare il suo ordine
     if ordine.cliente.id != current_user.id:
         return redirect(url_for('main.home'))
 
-    # Line items per Stripe
+    # Line items per Stripe (DEVE essere prima del print)
     line_items = []
     for det in ordine.dettagli:
+        print("Aggiungo prodotto:", det.prodotto.nome, "x", det.quantita)
         line_items.append({
-            'price_data': {
-                'currency': 'eur',
-                'unit_amount': int(det.prezzo_unitario * 100),
-                'product_data': {'name': det.prodotto.nome},
-            },
+            'price': 'price_1SpmjTALQqmJv8swIHvfrtLb',
             'quantity': det.quantita,
         })
 
-    # 1️⃣ CREA LA SESSIONE STRIPE
+    print("Line items:", line_items)
+
+    # CREA LA SESSIONE STRIPE
     session = stripe.checkout.Session.create(
         payment_method_types=['card'],
         line_items=line_items,
@@ -1003,13 +1014,12 @@ def create_checkout_session(ordine_id):
         metadata={'ordine_id': ordine.id}
     )
 
-    # 2️⃣ SALVA session.id NELL’ORDINE
+    # SALVA session.id NELL’ORDINE
     ordine.stripe_session_id = session.id
     db.session.commit()
 
-    # 3️⃣ REDIRECT AL CHECKOUT
+    # REDIRECT AL CHECKOUT
     return redirect(session.url)
-
 
 @main.route('/pagamento/success/<int:ordine_id>')
 @login_required
