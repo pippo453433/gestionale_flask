@@ -17,13 +17,15 @@ migrate = Migrate()
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
 
-
 def create_app():
     app = Flask(__name__)
 
-    # Carica la configurazione in base all'ambiente
+    # Carica la configurazione
     env = os.getenv('FLASK_ENV', 'development')
     app.config.from_object(config[env])
+
+    # 🔥 AGGIUNGI QUESTA RIGA
+    app.config['STRIPE_WEBHOOK_SECRET'] = os.environ.get('STRIPE_WEBHOOK_SECRET')
 
     # Imposta la chiave Stripe corretta
     stripe.api_key = app.config['STRIPE_SECRET_KEY']
