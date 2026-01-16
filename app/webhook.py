@@ -1,12 +1,15 @@
 import stripe
 import json
-from app import mail
 from flask import Blueprint, request, jsonify, current_app
 from app.models import db, Ordine
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from io import BytesIO
-from flask_mail import Message
+
+# SendGrid
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition
+import base64
 
 webhook_bp = Blueprint('webhook_bp', __name__)
 
@@ -40,30 +43,71 @@ def stripe_webhook():
             # 🔥 GENERA PDF
             pdf_buffer = genera_fattura_pdf(ordine)
 
-            # 🔥 CREA EMAIL
-            msg = Message(
-                subject=f"Conferma pagamento ordine #{ordine.id}",
-                recipients=[ordine.email],
-                sender=current_app.config['MAIL_USERNAME']
-            )
+            # 🔥 HTML elegante
+            html_content = f"""
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <meta charset="UTF-8">
+                <style>
+                  body {{
+                    font-family: Arial, sans-serif;
+                    background-color: #f9f9f9;
+                    padding: 20px;
+                    color: #333;
+                  }}
+                  .container {{
+                    background-color: #fff;
+                    border-radius: 8px;
+                    padding: 20px;
+                    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                  }}
+                  h2 {{
+                    color: #007BFF;
+                  }}
+                  .footer {{
+                    margin-top: 30px;
+                    font-size: 12px;
+                    color: #888;
+                  }}
+                </style>
+              </head>
+              <body>
+                <div class="container">
+                  <h2>Conferma pagamento ordine #{ordine.id}</h2>
+                  <p>Ciao {ordine.nome},</p>
+                  <p>Il tuo ordine <strong>#{ordine.id}</strong> è stato pagato con successo.</p>
+                  <p>In allegato trovi la fattura in PDF.</p>
+                  <p>Grazie per il tuo acquisto!</p>
+                  <div class="footer">
+                    Questa email è generata automaticamente dal sistema gestionale.
+                  </div>
+                </div>
+              </body>
+            </html>
+            """
 
-            msg.body = (
-                f"Ciao {ordine.nome},\n\n"
-                f"Il tuo ordine #{ordine.id} è stato pagato con successo.\n"
-                f"In allegato trovi la fattura in PDF.\n\n"
-                f"Grazie per il tuo acquisto!"
+            # 🔥 CREA EMAIL SENDGRID
+            message = Mail(
+                from_email='testdev99661@gmail.com',
+                to_emails=ordine.email,
+                subject=f"Conferma pagamento ordine #{ordine.id}",
+                html_content=html_content
             )
 
             # 🔥 ALLEGA PDF
-            msg.attach(
-                f"fattura_{ordine.id}.pdf",
-                "application/pdf",
-                pdf_buffer.read()
+            encoded_pdf = base64.b64encode(pdf_buffer.read()).decode()
+            attachment = Attachment(
+                FileContent(encoded_pdf),
+                FileName(f"fattura_{ordine.id}.pdf"),
+                FileType("application/pdf"),
+                Disposition("attachment")
             )
+            message.attachment = attachment
 
             # 🔥 INVIA EMAIL
-            with current_app.app_context():
-                mail.send(msg)
+            sg = SendGridAPIClient(current_app.config['SENDGRID_API_KEY'])
+            sg.send(message)
 
             print("EMAIL INVIATA PER ORDINE:", ordine.id)
 
