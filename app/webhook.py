@@ -1,10 +1,13 @@
 import stripe
 import json
+from app import mail
 from flask import Blueprint, request, jsonify, current_app
 from app.models import db, Ordine
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from io import BytesIO
+from flask_mail import Message
+
 webhook_bp = Blueprint('webhook_bp', __name__)
 
 @webhook_bp.route('/webhook', methods=['POST'])
@@ -33,12 +36,44 @@ def stripe_webhook():
             ordine.pagato = True
             db.session.commit()
             print("ORDINE PAGATO:", ordine.id)
+
+            # 🔥 GENERA PDF
+            pdf_buffer = genera_fattura_pdf(ordine)
+
+            # 🔥 CREA EMAIL
+            msg = Message(
+                subject=f"Conferma pagamento ordine #{ordine.id}",
+                recipients=[ordine.email],
+                sender=current_app.config['MAIL_USERNAME']
+            )
+
+            msg.body = (
+                f"Ciao {ordine.nome},\n\n"
+                f"Il tuo ordine #{ordine.id} è stato pagato con successo.\n"
+                f"In allegato trovi la fattura in PDF.\n\n"
+                f"Grazie per il tuo acquisto!"
+            )
+
+            # 🔥 ALLEGA PDF
+            msg.attach(
+                f"fattura_{ordine.id}.pdf",
+                "application/pdf",
+                pdf_buffer.read()
+            )
+
+            # 🔥 INVIA EMAIL
+            with current_app.app_context():
+                mail.send(msg)
+
+            print("EMAIL INVIATA PER ORDINE:", ordine.id)
+
         else:
             print("ORDINE NON TROVATO PER SESSION ID")
 
     return jsonify({'status': 'success'}), 200
 
-#route fattura pd
+
+# route fattura pdf
 def genera_fattura_pdf(ordine):
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=A4)
@@ -80,7 +115,6 @@ def genera_fattura_pdf(ordine):
         pdf.drawString(400, y, f"€ {det.subtotale}")
         y -= 20
 
-        # Se finisce la pagina, ne crea una nuova
         if y < 80:
             pdf.showPage()
             y = altezza - 50
@@ -92,5 +126,3 @@ def genera_fattura_pdf(ordine):
     pdf.save()
     buffer.seek(0)
     return buffer
-
-
