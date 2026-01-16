@@ -16,18 +16,22 @@ def stripe_webhook():
         event = stripe.Webhook.construct_event(
             payload, sig_header, endpoint_secret
         )
-    except ValueError as e:
+    except Exception:
         return jsonify({'error': 'Invalid payload'}), 400
-    except stripe.error.SignatureVerificationError as e:
-        return jsonify({'error': 'Invalid signature'}), 400
 
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
-        email = session.get('customer_email')
+        session_id = session['id']
 
-        ordine = Ordine.query.filter_by(email=email).order_by(Ordine.id.desc()).first()
+        print("SESSION ID RICEVUTO:", session_id)
+
+        ordine = Ordine.query.filter_by(stripe_session_id=session_id).first()
+
         if ordine:
             ordine.pagato = True
             db.session.commit()
+            print("ORDINE PAGATO:", ordine.id)
+        else:
+            print("ORDINE NON TROVATO PER SESSION ID")
 
     return jsonify({'status': 'success'}), 200
