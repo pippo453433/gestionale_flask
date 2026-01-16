@@ -12,16 +12,23 @@ def register():
     form = RegistrationForm()
     print("ERRORI:", form.errors)
     if form.validate_on_submit():
+
+        # accetta solo CLIENTE o FORNITORE
+        ruolo_scelto = form.ruolo.data.upper()
+        if ruolo_scelto not in ["CLIENTE", "FORNITORE"]:
+            ruolo_scelto = "CLIENTE"
+
         user = User(
             username=form.username.data,
             email=form.email.data,
-            ruolo=form.ruolo.data
+            ruolo=ruolo_scelto
         )
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
         flash('Registrazione completata!')
         return redirect(url_for('auth.login'))
+
     return render_template('auth/register.html', form=form)
 
 

@@ -23,6 +23,7 @@ class ProductionConfig(Config):
     DEBUG = False
 
 class DevelopmentConfig(Config):
+    STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
     DEBUG = True
 
 config = {

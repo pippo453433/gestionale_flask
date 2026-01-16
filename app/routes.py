@@ -550,7 +550,7 @@ def prodotti_fornitore():
     return render_template('prodotti/prodotti_fornitore.html', prodotti=prodotti)
 
 @main.route('/prodotti')
-@login_required
+
 def prodotti():
     page = request.args.get('page', 1, type=int)
     categoria_id = request.args.get('categoria', type=int)
@@ -982,6 +982,7 @@ def create_checkout_session(ordine_id):
 
 
 @main.route('/pagamento/success/<int:ordine_id>')
+@login_required
 def pagamento_success(ordine_id):
     ordine = Ordine.query.get_or_404(ordine_id)
     ordine.stato = 'CONFERMATO'
@@ -989,6 +990,7 @@ def pagamento_success(ordine_id):
     return render_template('carrello/success.html', ordine=ordine)
 #gestire pagamento in caso di annulla
 @main.route('/pagamento/cancel/<int:ordine_id>')
+@login_required
 def pagamento_cancel(ordine_id):
     ordine = Ordine.query.get_or_404(ordine_id)
     return render_template("carrello/cancel.html", ordine=ordine)
@@ -1009,7 +1011,7 @@ def prepare_checkout_stripe(ordine_id):
     return redirect(url_for('main.create_checkout_session', ordine_id=ordine.id))
 
 #route stripe
-@main.route('/webhook/stripe', methods=['POST'])
+@main.route('/webhook', methods=['POST'])
 
 def stripe_webhook():
     print("WEBHOOK CHIAMATO")
