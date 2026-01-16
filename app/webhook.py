@@ -106,8 +106,15 @@ def stripe_webhook():
             message.attachment = attachment
 
             # 🔥 INVIA EMAIL
-            sg = SendGridAPIClient(current_app.config['SENDGRID_API_KEY'])
-            sg.send(message)
+            try:
+                sg = SendGridAPIClient(current_app.config['SENDGRID_API_KEY'])
+                response = sg.send(message)
+                print("EMAIL INVIATA PER ORDINE:", ordine.id)
+                print("SENDGRID STATUS:", response.status_code)
+            except Exception as e:
+                print("ERRORE INVIO EMAIL:", e)
+
+
 
             print("EMAIL INVIATA PER ORDINE:", ordine.id)
 
