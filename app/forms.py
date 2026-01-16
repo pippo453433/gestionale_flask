@@ -21,7 +21,14 @@ class RegistrationForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email(), dominio_valido])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
     password2 = PasswordField('Conferma Password', validators=[EqualTo('password')])
-    ruolo = SelectField('Tipo', choices=['CLIENTE', 'cliente', 'FORNITORE', 'fornitore'], default='CLIENTE')
+    ruolo = SelectField(
+        'Tipo',
+        choices=[
+            ('CLIENTE', 'Cliente'),
+            ('FORNITORE', 'Fornitore')
+        ],
+        default='CLIENTE' 
+    )
     submit = SubmitField('Registrati')
     def validate_email(self, field):
         from app.models import User
