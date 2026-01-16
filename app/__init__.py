@@ -1,14 +1,13 @@
 import os
 from dotenv import load_dotenv
 load_dotenv()
-from config import config
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_mail import Mail
 import stripe
-import os
+from config import config
 
 
 mail = Mail()
