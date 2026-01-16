@@ -91,6 +91,7 @@ class Ordine(db.Model):
     telefono = db.Column(db.String(30))
     email = db.Column(db.String(100))
     pagato = db.Column(db.Boolean, default=False)
+    stripe_session_id = db.Column(db.String(100))
 
 class OrdineDettaglio(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -229,25 +229,27 @@ def gestione_ordini_admin():
 
 
 
-#CONFERMA ORDINE
+#Crea ORDINE
 @main.route('/ordine/crea', methods=['POST'])
 @login_required
 def crea_ordine():
-    cart = Cart()  # oppure recupera da sessione
+    cart = Cart()
 
     if not cart.cart:
         flash("Il carrello è vuoto.", "warning")
         return redirect(url_for('main.carrello'))
 
+    # 1) CREA L’ORDINE
     nuovo_ordine = Ordine(
         cliente_id=current_user.id,
+        email=current_user.email,
         stato="PENDING",
         totale=0,
         note=""
     )
 
     db.session.add(nuovo_ordine)
-    db.session.flush()  # per ottenere nuovo_ordine.id
+    db.session.flush()  # ottieni nuovo_ordine.id
 
     totale = 0
 
@@ -264,10 +266,32 @@ def crea_ordine():
     nuovo_ordine.totale = totale
     db.session.commit()
 
-    cart.clear()  # svuota il carrello
+    # 2) CREA LA SESSIONE STRIPE
+    session = stripe.checkout.Session.create(
+        payment_method_types=['card'],
+        line_items=[
+            {
+                'price_data': {
+                    'currency': 'eur',
+                    'product_data': {'name': 'Ordine #' + str(nuovo_ordine.id)},
+                    'unit_amount': int(totale * 100),
+                },
+                'quantity': 1,
+            }
+        ],
+        mode='payment',
+        success_url=url_for('main.success', _external=True),
+        cancel_url=url_for('main.cancel', _external=True),
+        customer_email=current_user.email
+    )
 
-    flash("Ordine creato con successo!", "success")
-    return redirect(url_for('main.ordine_confermato'))
+    # 3) SALVA L’ID DELLA SESSIONE STRIPE NELL’ORDINE
+    nuovo_ordine.stripe_session_id = session.id
+    db.session.commit()
+
+    # 4) SVUOTA CARRELLO E REDIRECT AL CHECKOUT
+    cart.clear()
+    return redirect(session.url)
 
 
 
@@ -947,6 +971,7 @@ def test_stripe():
 #        return "Ordine non trovato", 404
 #    return render_template("carrello/success.html", ordine=ordine)
 
+#crea pagamento stripe
 @main.route('/pagamento/<int:ordine_id>')
 @login_required
 def create_checkout_session(ordine_id):
@@ -968,7 +993,7 @@ def create_checkout_session(ordine_id):
             'quantity': det.quantita,
         })
 
-    # Crea sessione Stripe Checkout
+    # 1️⃣ CREA LA SESSIONE STRIPE
     session = stripe.checkout.Session.create(
         payment_method_types=['card'],
         line_items=line_items,
@@ -978,6 +1003,11 @@ def create_checkout_session(ordine_id):
         metadata={'ordine_id': ordine.id}
     )
 
+    # 2️⃣ SALVA session.id NELL’ORDINE
+    ordine.stripe_session_id = session.id
+    db.session.commit()
+
+    # 3️⃣ REDIRECT AL CHECKOUT
     return redirect(session.url)
 
 
