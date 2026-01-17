@@ -1,7 +1,8 @@
 from flask import url_for
-from flask_mail import Message
-from app import mail
 from datetime import datetime
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+import os
 
 def invia_notifica_ordine(ordine, vecchio_stato, app=None):
     """
@@ -15,13 +16,8 @@ def invia_notifica_ordine(ordine, vecchio_stato, app=None):
     subject = f"Aggiornamento ordine #{ordine.id}"
     recipient = ordine.cliente.email
 
-    msg = Message(
-        subject=subject,
-        recipients=[recipient]
-    )
-
     # VERSIONE TESTO (fallback)
-    msg.body = f"""
+    testo_plain = f"""
 Ciao {ordine.cliente.username},
 
 lo stato del tuo ordine #{ordine.id} è stato aggiornato.
@@ -60,12 +56,10 @@ Grazie per aver acquistato da noi!
     }
 
     testo_dinamico = testo_stato.get(ordine.stato.upper(), "")
-
-    # 🕒 Data aggiornamento
     ora_aggiornamento = datetime.now().strftime("%d/%m/%Y %H:%M")
 
     # HTML MIGLIORATO
-    msg.html = f"""
+    html = f"""
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -124,21 +118,21 @@ Grazie per aver acquistato da noi!
     """
 
     if link_ordine:
-        msg.html += f"""
+        html += f"""
               <p style="margin:0 0 18px; font-size:14px; color:#444;">
                 Puoi vedere tutti i dettagli del tuo ordine cliccando sul pulsante qui sotto:
               </p>
 
               <p style="margin:0 0 24px;">
-                <a href="{link_ordine}" 
-                   style="display:inline-block; padding:10px 18px; background-color:#1e88e5; color:#ffffff; 
+                <a href="{link_ordine}"
+                   style="display:inline-block; padding:10px 18px; background-color:#1e88e5; color:#ffffff;
                           text-decoration:none; border-radius:4px; font-size:14px;">
                   Vedi ordine
                 </a>
               </p>
         """
 
-    msg.html += """
+    html += """
               <p style="margin:0 0 6px; font-size:13px; color:#666;">
                 Grazie per aver acquistato da noi!
               </p>
@@ -165,8 +159,18 @@ Grazie per aver acquistato da noi!
 </html>
 """
 
+    # INVIO CON SENDGRID
     try:
-        mail.send(msg)
+        sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
+        message = Mail(
+            from_email="gestionale@outlook.com",
+            to_emails=recipient,
+            subject=subject,
+            html_content=html,
+            plain_text_content=testo_plain
+        )
+        response = sg.send(message)
         print(f"[EMAIL] Notifica HTML inviata a {recipient}")
+        print("SENDGRID STATUS:", response.status_code)
     except Exception as e:
         print(f"[ERRORE EMAIL] {e}")
