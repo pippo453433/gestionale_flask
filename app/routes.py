@@ -1051,32 +1051,32 @@ def prepare_checkout_stripe(ordine_id):
     return redirect(url_for('main.create_checkout_session', ordine_id=ordine.id))
 
 #route stripe
-@main.route('/webhook', methods=['POST'])
+#@main.route('/webhook', methods=['POST'])
 
-def stripe_webhook():
-    print("WEBHOOK CHIAMATO")
-    payload = request.get_data()
-    sig = request.headers.get('Stripe-Signature')
+#def stripe_webhook():
+#    print("WEBHOOK CHIAMATO")
+#    payload = request.get_data()
+#    sig = request.headers.get('Stripe-Signature')
 
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig, current_app.config['STRIPE_WEBHOOK_SECRET']
-        )
-    except Exception as e:
-        print("Errore firma webhook:", e)
-        return 'Error', 400
+#    try:
+#        event = stripe.Webhook.construct_event(
+#           payload, sig, current_app.config['STRIPE_WEBHOOK_SECRET']
+#        )
+#    except Exception as e:
+#        print("Errore firma webhook:", e)
+#        return 'Error', 400
 
-    if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-        ordine_id = session['metadata'].get('ordine_id')
+#    if event['type'] == 'checkout.session.completed':
+#        session = event['data']['object']
+#       ordine_id = session['metadata'].get('ordine_id')
 
-        if ordine_id:
-            ordine = Ordine.query.get(int(ordine_id))
-            if ordine and ordine.stato == 'PENDING':
-                ordine.pagato = True
-                ordine.stato = 'CONFERMATO'
-                db.session.commit()
-                print(f"Ordine {ordine.id} confermato via webhook")
-    print("Evento ricevuto:", event['type'])
+#        if ordine_id:
+#            ordine = Ordine.query.get(int(ordine_id))
+#            if ordine and ordine.stato == 'PENDING':
+#                ordine.pagato = True
+#                ordine.stato = 'CONFERMATO'
+#               db.session.commit()
+#                print(f"Ordine {ordine.id} confermato via webhook")
+#    print("Evento ricevuto:", event['type'])
 
-    return 'OK', 200
+#    return 'OK', 200
