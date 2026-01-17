@@ -138,47 +138,69 @@ def genera_fattura_pdf(ordine):
     larghezza, altezza = A4
     y = altezza - 50
 
-    pdf.setFont("Helvetica-Bold", 16)
-    pdf.drawString(50, y, f"Fattura Ordine #{ordine.id}")
-    y -= 30
+    # 🔵 HEADER COLORATO
+    pdf.setFillColorRGB(0.12, 0.47, 0.95)  # blu elegante
+    pdf.rect(0, y - 40, larghezza, 60, fill=1, stroke=0)
 
-    pdf.setFont("Helvetica", 12)
-    pdf.drawString(50, y, f"Cliente: {ordine.nome} {ordine.cognome}")
-    y -= 20
-    pdf.drawString(50, y, f"Email: {ordine.email}")
-    y -= 20
-    pdf.drawString(50, y, f"Data ordine: {ordine.data_ordine.strftime('%d/%m/%Y')}")
-    y -= 30
+    pdf.setFillColorRGB(1, 1, 1)
+    pdf.setFont("Helvetica-Bold", 20)
+    pdf.drawString(40, y, f"Fattura Ordine #{ordine.id}")
 
+    y -= 80
+
+    # 🔹 BOX DATI CLIENTE
+    pdf.setFillColorRGB(0.95, 0.95, 0.95)
+    pdf.rect(30, y - 70, larghezza - 60, 70, fill=1, stroke=0)
+
+    pdf.setFillColorRGB(0, 0, 0)
     pdf.setFont("Helvetica-Bold", 12)
-    pdf.drawString(50, y, "Dettagli ordine:")
-    y -= 20
+    pdf.drawString(40, y - 20, "Dati Cliente:")
 
     pdf.setFont("Helvetica", 11)
-    pdf.drawString(50, y, "Prodotto")
-    pdf.drawString(250, y, "Quantità")
-    pdf.drawString(330, y, "Prezzo")
-    pdf.drawString(400, y, "Subtotale")
-    y -= 15
-    pdf.line(50, y, 550, y)
-    y -= 20
+    pdf.drawString(40, y - 40, f"Nome: {ordine.nome} {ordine.cognome}")
+    pdf.drawString(40, y - 55, f"Email: {ordine.email}")
+    pdf.drawString(40, y - 70, f"Data ordine: {ordine.data_ordine.strftime('%d/%m/%Y')}")
+
+    y -= 120
+
+    # 🔹 TABELLA PRODOTTI
+    pdf.setFont("Helvetica-Bold", 12)
+    pdf.drawString(40, y, "Dettagli ordine:")
+    y -= 25
+
+    # Header tabella
+    pdf.setFillColorRGB(0.88, 0.95, 1)
+    pdf.rect(30, y - 20, larghezza - 60, 25, fill=1, stroke=0)
+
+    pdf.setFillColorRGB(0, 0, 0)
+    pdf.setFont("Helvetica-Bold", 11)
+    pdf.drawString(40, y - 5, "Prodotto")
+    pdf.drawString(240, y - 5, "Quantità")
+    pdf.drawString(330, y - 5, "Prezzo")
+    pdf.drawString(420, y - 5, "Subtotale")
+
+    y -= 35
 
     pdf.setFont("Helvetica", 11)
 
     for det in ordine.dettagli:
-        pdf.drawString(50, y, det.prodotto.nome)
-        pdf.drawString(250, y, str(det.quantita))
-        pdf.drawString(330, y, f"€ {det.prezzo_unitario}")
-        pdf.drawString(400, y, f"€ {det.subtotale}")
+        pdf.drawString(40, y, det.prodotto.nome)
+        pdf.drawString(240, y, str(det.quantita))
+        pdf.drawString(330, y, f"€ {det.prezzo_unitario:.2f}")
+        pdf.drawString(420, y, f"€ {det.subtotale:.2f}")
         y -= 20
 
-        if y < 80:
+        if y < 100:
             pdf.showPage()
             y = altezza - 50
 
-    y -= 20
-    pdf.setFont("Helvetica-Bold", 12)
-    pdf.drawString(50, y, f"Totale ordine: € {ordine.totale}")
+    # 🔹 TOTALE EVIDENZIATO
+    pdf.setFillColorRGB(0.95, 0.95, 0.95)
+    pdf.rect(300, y - 30, 200, 30, fill=1, stroke=0)
+
+    pdf.setFillColorRGB(0, 0, 0)
+    pdf.setFont("Helvetica-Bold", 14)
+    pdf.drawString(310, y - 10, f"Totale: € {ordine.totale:.2f}")
 
     pdf.save()
     buffer.seek(0)
