@@ -178,3 +178,9 @@ def genera_fattura_pdf(ordine):
     pdf.save()
     buffer.seek(0)
     return buffer
+
+
+@webhook_bp.route('/webhook-test', methods=['GET'])
+def webhook_test():
+    print("WEBHOOK TEST CHIAMATO")
+    return "OK TEST WEBHOOK", 200
