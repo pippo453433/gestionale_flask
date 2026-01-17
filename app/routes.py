@@ -13,7 +13,7 @@ from flask import abort
 from app.cart import Cart
 from flask_login import current_user
 from app.models import Ordine, OrdineDettaglio
-from app.email import invia_notifica_ordine
+from app.email_notifiche import invia_notifica_ordine
 import stripe
 from flask import current_app
 from flask import session
@@ -374,7 +374,7 @@ def modifica_stato_ordine(id):
             vecchio_stato = ordine.stato
             ordine.stato = nuovo_stato
             db.session.commit()
-            from app.email import invia_notifica_ordine
+            from app.email_notifiche import invia_notifica_ordine
             invia_notifica_ordine(ordine, vecchio_stato)
             flash("Stato aggiornato e mail inviata!", "success")
             return redirect(url_for('main.gestione_ordini_admin'))
