@@ -17,6 +17,9 @@ webhook_bp = Blueprint('webhook_bp', __name__)
 @webhook_bp.route('/webhook', methods=['POST'])
 def stripe_webhook():
     print("WEBHOOK LOADED")
+    print("SIG HEADER:", request.headers.get('Stripe-Signature'))
+    print("WEBHOOK SECRET:", current_app.config.get('STRIPE_WEBHOOK_SECRET'))
+
     payload = request.data
     sig_header = request.headers.get('Stripe-Signature')
     endpoint_secret = current_app.config['STRIPE_WEBHOOK_SECRET']
@@ -114,6 +117,8 @@ def stripe_webhook():
                 print("SENDGRID STATUS:", response.status_code)
             except Exception as e:
                 print("ERRORE INVIO EMAIL:", e)
+                print("ERRORE VERIFICA WEBHOOK:", e)
+
 
 
 
