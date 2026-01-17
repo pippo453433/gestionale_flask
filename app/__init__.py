@@ -52,4 +52,8 @@ def create_app():
     from app.routes import main
     app.register_blueprint(main)
 
+    print("ROUTES REGISTRATE")
+    for rule in app.url_map.iter_rules():
+        print(rule, "→", rule.endpoint)
+
     return app
