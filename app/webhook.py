@@ -132,6 +132,7 @@ def stripe_webhook():
 
 # route fattura pdf
 def genera_fattura_pdf(ordine):
+    print("fattura bella")
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=A4)
 
