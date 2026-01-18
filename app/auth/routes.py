@@ -4,10 +4,12 @@ from app.forms import RegistrationForm, LoginForm
 from app.models import User
 from app import db
 from flask import session
+from app import limiter
 
 auth = Blueprint('auth', __name__)
 
 @auth.route('/register', methods=['GET', 'POST'])
+@limiter.limit("3 per minute")
 def register():
     form = RegistrationForm()
     print("ERRORI:", form.errors)
@@ -33,6 +35,7 @@ def register():
 
 
 @auth.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def login():
 
     session.pop('cart', None)
@@ -69,7 +72,7 @@ def login():
 
 
 @auth.route('/logout')
-
+@limiter.limit("20 per minute")
 def logout():
     session.pop('cart', None)
     logout_user()

@@ -26,6 +26,7 @@ class User(UserMixin, db.Model):
     ragione_sociale = db.Column(db.String(100))
     partita_iva = db.Column(db.String(20))
     telefono = db.Column(db.String(20))
+    stripe_customer_id = db.Column(db.String(255), nullable=True)
 
     # Relazione molti-a-molti con Prodotto
     prodotti = db.relationship(

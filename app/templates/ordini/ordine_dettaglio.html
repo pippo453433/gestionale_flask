@@ -62,7 +62,7 @@
 
     <!-- TITOLO CON ID FORMATTATO -->
     <h2 class="mb-4">📦 Dettaglio ordine #{{ "%05d"|format(ordine.id) }}</h2>
-
+    
     <!-- TIMELINE STATO -->
      <div class="timeline">
 
@@ -133,6 +133,12 @@
                 {% endfor %}
             </tbody>
         </table>
+        <a href="{{ url_for('main.gestione_ordini_admin') }}" 
+            class="btn btn-sm btn-secondary mt-3">
+             🔙 Torna a tutti gli ordini
+        </a>
+
+
 
         <!-- TOTALE -->
         <div class="total-box">

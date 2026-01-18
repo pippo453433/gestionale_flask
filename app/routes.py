@@ -1,22 +1,24 @@
-from flask import Blueprint, render_template,  flash, request, redirect, url_for, jsonify
+from flask import (
+    Blueprint, render_template, flash, request, redirect,
+    url_for, jsonify, abort, current_app, session, Response
+)
+from flask_login import login_user, login_required, current_user
+
 from app import db
-from app.models import User, Categoria, Prodotto
-from app.forms import RegistrationForm
-from flask_login import login_user
-from app.forms import LoginForm
-from app.utils.decorators import admin_required, fornitore_required, cliente_required, roles_required
-from flask_login import login_required
-from app.models import Prodotto
-from flask import request
-from app.forms import ProdottoForm
-from flask import abort
+from app.models import User, Categoria, Prodotto, Ordine, OrdineDettaglio
+from app.forms import RegistrationForm, LoginForm, ProdottoForm
+from app.utils.decorators import (
+    admin_required, fornitore_required, cliente_required, roles_required
+)
 from app.cart import Cart
-from flask_login import current_user
-from app.models import Ordine, OrdineDettaglio
 from app.email_notifiche import invia_notifica_ordine
+
 import stripe
-from flask import current_app
-from flask import session
+import csv
+from io import StringIO
+from datetime import datetime
+from .forms import CategoriaForm
+
 
 
 main = Blueprint('main', __name__)   # crea un blueprint chiamato "main"
@@ -179,7 +181,7 @@ def cart_clear():
 @login_required
 @admin_required
 def gestione_ordini_admin():
-    print("PARAMETRI GET:", request.args)
+    
 
     stato = request.args.get('stato')
     data_da = request.args.get('data_da')
@@ -377,7 +379,8 @@ def modifica_stato_ordine(id):
             from app.email_notifiche import invia_notifica_ordine
             invia_notifica_ordine(ordine, vecchio_stato)
             flash("Stato aggiornato e mail inviata!", "success")
-            return redirect(url_for('main.gestione_ordini_admin'))
+            page_corrente = request.form.get("page", 1)
+            return redirect(url_for('main.gestione_ordini_admin', page=page_corrente))
 
     return render_template('ordini/modifica_stato.html', ordine=ordine, stati=stati)
 
@@ -448,7 +451,7 @@ def checkout():
 
         except Exception as e:
             db.session.rollback()
-            print("Errore checkout:", e)
+            current_app.logger.error(f"Errore checkout: {e}")
             flash("Errore durante il checkout. Riprova.", "danger")
             return redirect(url_for('main.cart_view'))
 
@@ -492,11 +495,11 @@ def statistiche_ordini():
 
 #route che porta a dettaglio prodotto 
 @main.route('/prodotti/<int:id>')
-@login_required
+
 def dettaglio_prodotto(id):
     prodotto = Prodotto.query.get_or_404(id)
 
-    if current_user.ruolo == "FORNITORE":
+    if current_user.is_authenticated and current_user.ruolo == "FORNITORE":
         if current_user not in prodotto.fornitori:
             flash("Non hai accesso a questo prodotto")
             return redirect(url_for('main.dashboard_fornitore'))
@@ -547,25 +550,31 @@ def modifica_fornitore(id):
 # ---------------------------------------------------------
 @main.route('/')
 def home():
-    nome = "Filippo"   # variabile da passare al template
+    
 
     categorie = Categoria.query.all()
 
     # Statistiche tramite funzione
     totale_categorie, categorie_attive, categorie_non_attive, percentuale_attive = get_statistiche()
 
+    #recupera alcuni prodotti da mostrare
+    prodotti_da_mostrare = Prodotto.query.filter_by(attivo=True).limit(5).all()
+
+    nome_utente = "Visitatore"
+
     # Ultima categoria inserita
     ultima = Categoria.query.order_by(Categoria.id.desc()).first()
 
     return render_template(
         'layout/home.html',
-        nome=nome,
+        nome=nome_utente,
         categorie=categorie,
         totale_categorie=totale_categorie,
         categorie_attive=categorie_attive,
         categorie_non_attive=categorie_non_attive,
         percentuale_attive=percentuale_attive,
-        ultima=ultima
+        ultima=ultima,
+        prodotti_da_mostrare=prodotti_da_mostrare
     )
 #prodotti nella dashboard_fornitore i suoi prodotti inseriti
 @main.route('/fornitore/prodotti')
@@ -657,7 +666,7 @@ def dettaglio_fornitore(id):
 @main.route('/categorie')
 def categorie():
     categorie = Categoria.query.all()
-    return render_template('categorie.html', categorie=categorie)
+    return render_template('categorie/categorie_admin.html', categorie=categorie)
 
 #rottaa eliminazione prodotto
 @main.route('/prodotti/<int:id>/elimina', methods=['POST'])
@@ -983,26 +992,39 @@ def create_checkout_session(ordine_id):
 
     ordine = Ordine.query.get_or_404(ordine_id)
 
-    print("CHIAVE STRIPE LETTA DA FLASK:", current_app.config['STRIPE_SECRET_KEY'])
-    print("Creo sessione Stripe per ordine:", ordine.id)
-    print("CHIAVE STRIPE:", current_app.config['STRIPE_SECRET_KEY'])
+    if ordine.stato == "CONFERMATO":
+        flash("Questo ordine risulta gia pagato.", "info")
+        return redirect(url_for('main.ordine_dettaglio', id=ordine.id))
 
     stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
 
     # Sicurezza: solo il cliente può pagare il suo ordine
     if ordine.cliente.id != current_user.id:
         return redirect(url_for('main.home'))
+    
+    for det in ordine.dettagli:
+        if det.quantita > det.prodotto.quantita:
+            flash(f"Il prodotto {det.prodotto.nome} non è piu disponibile in quantita sufficiente.", "danger")
+            return redirect(url_for('main.ordine_dettaglio', id=ordine.id))
+    stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
 
     # Line items per Stripe (DEVE essere prima del print)
     line_items = []
     for det in ordine.dettagli:
-        print("Aggiungo prodotto:", det.prodotto.nome, "x", det.quantita)
+        
         line_items.append({
-            'price': 'price_1SpmjTALQqmJv8swIHvfrtLb',
+            'price_data': {
+                'currency': 'eur',
+                'product_data': {
+                    'name': det.prodotto.nome,
+
+                },
+                'unit_amount': int(det.prezzo_unitario * 100),
+            },
             'quantity': det.quantita,
         })
 
-    print("Line items:", line_items)
+    
 
     # CREA LA SESSIONE STRIPE
     session = stripe.checkout.Session.create(
@@ -1035,20 +1057,52 @@ def pagamento_cancel(ordine_id):
     ordine = Ordine.query.get_or_404(ordine_id)
     return render_template("carrello/cancel.html", ordine=ordine)
 
-
+#ROUTE PAGAMENTO STRIPE
 @main.route('/prepare_checkout_stripe/<int:ordine_id>', methods=['POST'])
 def prepare_checkout_stripe(ordine_id):
+    import stripe
+    stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
     ordine = Ordine.query.get_or_404(ordine_id)
+    if ordine.cliente_id != current_user.id:
+        flash("non puoi pagare un ordine non tuo", "danger")
+        return redirect(url_for('main.home'))
+    # 1. CREA CUSTOMER STRIPE SE NON ESISTE
+    if current_user.stripe_customer_id is None:
+        customer = stripe.Customer.create(
+            email=current_user.email,
+            
+        )
+        current_user.stripe_customer_id = customer.id
+        db.session.commit() 
+            # 2. CREA SESSIONE CHECKOUT LEGATA AL CUSTOMER
+    session = stripe.checkout.Session.create(
+        payment_method_types=['card'],
+        mode='payment',
+        customer=current_user.stripe_customer_id,
+        line_items=[
+            {
+                'price_data': {
+                    'currency': 'eur',
+                    'product_data': {
+                        'name': f"Ordine #{ordine.id}",
 
-    # Salva i dati cliente
-    ordine.indirizzo = request.form.get("indirizzo")
-    ordine.email = request.form.get("email")
-    ordine.telefono = request.form.get("telefono")
+                    },
+                    'unit_amount': int(ordine.totale * 100),
+                },
+                'quantity': 1,
+            }
+        ],
+        metadata={
+            'ordine_id': ordine.id,
+            'utente_id': current_user.id
+        },
+        
+        success_url=url_for('main.pagamento_success', ordine_id=ordine.id, _external=True),
+        cancel_url=url_for('main.pagamento_cancel', ordine_id=ordine.id, _external=True)
+    )
+    return redirect(session.url, code=303)
 
-    db.session.commit()
-
-    # Redirect alla sessione Stripe Checkout
-    return redirect(url_for('main.create_checkout_session', ordine_id=ordine.id))
+  
 
 #route stripe
 #@main.route('/webhook', methods=['POST'])
@@ -1080,3 +1134,76 @@ def prepare_checkout_stripe(ordine_id):
 #    print("Evento ricevuto:", event['type'])
 
 #    return 'OK', 200
+
+
+#ROUTE PER CSV
+
+
+@main.route('/admin/ordini/export')
+@admin_required
+def export_ordini():
+    output = StringIO()
+    writer = csv.writer(output)
+    
+    # intestazioni CSV
+    writer.writerow(['ID Ordine', 'Cliente', 'Email', 'Data Ordine', 'Stato', 'Totale'])
+
+    # ordini ordinati per data decrescente
+    ordini = Ordine.query.order_by(Ordine.data_ordine.desc()).all()
+
+    for ordine in ordini:
+        writer.writerow([
+            ordine.id,
+            ordine.cliente.username,
+            ordine.cliente.email,
+            ordine.data_ordine.strftime('%d/%m/%Y'),
+            ordine.stato,
+            f"{ordine.totale:.2f}".replace('.', ',')  # formato italiano
+        ])
+
+    output.seek(0)
+    return Response(
+        output.getvalue().encode('utf-8'),
+        mimetype='text/csv',
+        headers={'Content-Disposition': 'attachment; filename=ordini.csv'}
+    )
+
+#ROUTE PER ELIMINARE CATEGORIA
+
+@main.route('/elimina_categoria/<int:id>', methods=['POST'])
+@login_required  # Assicurati che solo l'admin possa farlo
+def elimina_categoria(id):
+    categoria = Categoria.query.get_or_404(id)
+    
+    # Opzionale: Controlla se ci sono prodotti associati
+    prodotti_collegati = Prodotto.query.filter_by(categoria_id=id).first()
+    if prodotti_collegati:
+        # Messaggio di errore se la categoria non è vuota
+        flash("Impossibile eliminare: sposta prima i prodotti in un'altra categoria!", "danger")
+        return redirect(url_for('main.dashboard_admin'))
+
+    db.session.delete(categoria)
+    db.session.commit()
+    flash(f"Categoria '{categoria.nome}' eliminata con successo!", "success")
+    return redirect(url_for('main.dashboard_admin'))
+#GESTIRE LE CATEGORIE
+@main.route('/admin/categorie')
+@login_required
+def gestione_categorie():
+    categorie = Categoria.query.all()
+    return render_template('categorie/admin_categorie.html', categorie=categorie)
+
+
+#CATEGORIA ADMIN
+@main.route('/categorie/nuova', methods=['GET', 'POST'])
+def nuova_categoria():
+    form = CategoriaForm()
+
+    if form.validate_on_submit():
+        nuova = Categoria(nome=form.nome.data)
+        db.session.add(nuova)
+        db.session.commit()
+        flash("Categoria aggiunta con successo", "success")
+        return redirect(url_for('main.categorie'))
+
+    return render_template('categorie/categorie_admin.html', form=form)
