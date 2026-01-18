@@ -1,18 +1,89 @@
-{% extends "layout/base.html" %}
-{% block title %}📊 Statistiche Ordini{% endblock %}
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Statistiche Ordini - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-{% block content %}
-<div class="container mt-4">
+    <style>
+        body {
+            margin: 0;
+            background-color: #f4f6f9;
+            font-family: "Segoe UI", sans-serif;
+        }
 
-    <h2 class="mb-4">📊 Statistiche Ordini</h2>
+        .sidebar {
+            width: 240px;
+            height: 100vh;
+            background-color: #1f2937;
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding: 20px;
+        }
 
-    <div class="row row-cols-2 row-cols-md-3 g-4">
+        .sidebar h2 {
+            font-size: 22px;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .sidebar a {
+            display: block;
+            color: #d1d5db;
+            padding: 10px 0;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .sidebar a:hover {
+            color: white;
+        }
+
+        .content {
+            margin-left: 260px;
+            padding: 30px;
+        }
+
+        .card {
+            border-radius: 12px;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <h2>Admin Panel</h2>
+
+    <a href="{{ url_for('main.dashboard_admin') }}">Dashboard</a>
+    <a href="{{ url_for('main.categorie') }}">Gestione Categorie</a>
+    {#<a href="{{ url_for('main.prodotti') }}">Gestione Prodotti</a>#}
+    <a href="{{ url_for('main.gestione_ordini_admin') }}">📦 Gestione Ordini</a>
+    <a href="{{ url_for('main.statistiche_ordini') }}" style="color: white; font-weight: bold;">📊 Statistiche Ordini</a>
+    {#<a href="{{ url_for('main.fornitori') }}">Gestione Fornitori</a>#}
+    <a href="{{ url_for('auth.logout') }}">Logout</a>
+
+    <hr style="border-color: #374151; margin: 20px 0;">
+
+    <a href="{{ url_for('main.home') }}">🏠 Torna al sito</a>
+</div>
+
+<!-- CONTENUTO -->
+<div class="content">
+
+    <h1 class="mb-2">📊 Statistiche Ordini</h1>
+    <p class="text-muted">Panoramica completa dello stato degli ordini.</p>
+
+    <div class="row row-cols-1 row-cols-md-3 g-4 mt-4">
 
         <div class="col">
             <div class="card text-white bg-dark shadow-sm">
                 <div class="card-body">
                     <h6 class="card-title">📦 Totale Ordini</h6>
-                    <p class="fs-4 fw-bold mb-0">{{ totale_ordini }}</p>
+                    <p class="fs-3 fw-bold mb-0">{{ totale_ordini }}</p>
                 </div>
             </div>
         </div>
@@ -21,7 +92,7 @@
             <div class="card text-white bg-warning shadow-sm">
                 <div class="card-body">
                     <h6 class="card-title">🟡 In Attesa</h6>
-                    <p class="fs-5 fw-semibold text-end mb-0">{{ pending }}</p>
+                    <p class="fs-4 fw-semibold text-end mb-0">{{ pending }}</p>
                 </div>
             </div>
         </div>
@@ -30,7 +101,7 @@
             <div class="card text-white bg-primary shadow-sm">
                 <div class="card-body">
                     <h6 class="card-title">🔵 Confermati</h6>
-                    <p class="fs-5 fw-semibold text-end mb-0">{{ confermato }}</p>
+                    <p class="fs-4 fw-semibold text-end mb-0">{{ confermato }}</p>
                 </div>
             </div>
         </div>
@@ -39,7 +110,7 @@
             <div class="card text-white bg-success shadow-sm">
                 <div class="card-body">
                     <h6 class="card-title">🟢 Spediti</h6>
-                    <p class="fs-5 fw-semibold text-end mb-0">{{ spedito }}</p>
+                    <p class="fs-4 fw-semibold text-end mb-0">{{ spedito }}</p>
                 </div>
             </div>
         </div>
@@ -48,15 +119,16 @@
             <div class="card text-white bg-secondary shadow-sm">
                 <div class="card-body">
                     <h6 class="card-title">⚫ Consegnati</h6>
-                    <p class="fs-5 fw-semibold text-end mb-0">{{ consegnato }}</p>
+                    <p class="fs-4 fw-semibold text-end mb-0">{{ consegnato }}</p>
                 </div>
             </div>
         </div>
+
         <div class="col">
             <div class="card text-white bg-danger shadow-sm">
                 <div class="card-body">
                     <h6 class="card-title">🔴 Annullati</h6>
-                    <p class="fs-5 fw-semibold text-end mb-0">{{ consegnato }}</p>
+                    <p class="fs-4 fw-semibold text-end mb-0">{{ annullato }}</p>
                 </div>
             </div>
         </div>
@@ -65,7 +137,7 @@
             <div class="card text-white bg-success shadow-sm">
                 <div class="card-body">
                     <h6 class="card-title">💰 Totale Incassato</h6>
-                    <p class="fs-5 fw-semibold text-end mb-0">€ {{ totale_incassato }}</p>
+                    <p class="fs-4 fw-semibold text-end mb-0">€ {{ totale_incassato }}</p>
                 </div>
             </div>
         </div>
@@ -73,4 +145,7 @@
     </div>
 
 </div>
-{% endblock %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

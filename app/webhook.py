@@ -10,15 +10,15 @@ from io import BytesIO
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition
 import base64
-print("IMPORT WEBHOOK OK")
+
 
 webhook_bp = Blueprint('webhook_bp', __name__)
 
 @webhook_bp.route('/webhook', methods=['POST'])
 def stripe_webhook():
-    print("WEBHOOK LOADED")
-    print("SIG HEADER:", request.headers.get('Stripe-Signature'))
-    print("WEBHOOK SECRET:", current_app.config.get('STRIPE_WEBHOOK_SECRET'))
+    import stripe
+    
+    
 
     payload = request.data
     sig_header = request.headers.get('Stripe-Signature')
@@ -34,15 +34,15 @@ def stripe_webhook():
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         session_id = session['id']
+        current_app.logger.info(f"Ordine pagato: {ordine.id}")
 
-        print("SESSION ID RICEVUTO:", session_id)
 
         ordine = Ordine.query.filter_by(stripe_session_id=session_id).first()
 
         if ordine:
             ordine.pagato = True
             db.session.commit()
-            print("ORDINE PAGATO:", ordine.id)
+            
 
             # 🔥 GENERA PDF
             pdf_buffer = genera_fattura_pdf(ordine)
@@ -113,26 +113,20 @@ def stripe_webhook():
             try:
                 sg = SendGridAPIClient(current_app.config['SENDGRID_API_KEY'])
                 response = sg.send(message)
-                print("EMAIL INVIATA PER ORDINE:", ordine.id)
-                print("SENDGRID STATUS:", response.status_code)
             except Exception as e:
-                print("ERRORE INVIO EMAIL:", e)
-                print("ERRORE VERIFICA WEBHOOK:", e)
-
-
-
-
-            print("EMAIL INVIATA PER ORDINE:", ordine.id)
+                current_app.logger.error(f"Errore invio email: {e}")
 
         else:
-            print("ORDINE NON TROVATO PER SESSION ID")
+            current_app.logger.warning("Ordine non trovato per session ID")
 
+    
     return jsonify({'status': 'success'}), 200
 
+            
 
 # route fattura pdf
 def genera_fattura_pdf(ordine):
-    print("fattura bella")
+    
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=A4)
 

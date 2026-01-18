@@ -39,19 +39,34 @@
     </div>
 </div>
     <section class="hero">
-        <h2>Benvenuto nel gestionale</h2>
-        <p>Gestisci categorie, prodotti</p>
+        <h2>Benvenuto</h2>
+        <p>Prodotti migliori sul mercato</p>
     </section>
     <div class="section-divider"></div>
-    <section class="intro">
-        <h2>Flask funziona con ereditarietà Jinja2!</h2>
-        <p>Questa è la home estesa da <strong>base.html</strong>.</p>
-        <p>Ciao <strong>{{ nome }}</strong>!</p>
+    <section style="margin-top: 40px;">
+        <h3>📦 Prodotti </h3>
+        {% if prodotti_da_mostrare %}
+        <div style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px;">
+            {% for prodotto in prodotti_da_mostrare %}
+            <a href="{{ url_for('main.dettaglio_prodotto', id=prodotto.id) }}" style="min-width: 180px; background: #f0f4c3; border-radius: 8px; padding: 15px; text-decoration: none; color: inherit; box-shadow: 0 2px 6px rgba(0,0,0,0.1); flex-shrink: 0;">
+                <strong>{{ prodotto.nome }}</strong>
+                <p>Prezzo: €{{ prodotto.prezzo }}</p>
+                {% if prodotto.attivo %}
+                <span style="color: green; font-weight: bold;">(Attivo)</span>
+                {% else %}
+                <span style="color: red; font-weight: bold;">(Non attivo)</span>
+                {% endif %}
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted">Nessun prodotto in evidenza al momento.</p>
+        {% endif %}
     </section>
     <div class="section-divider"></div>
 
     <section class="categorie-section">
-        <h3>📦 Categorie nel database</h3>
+        <h3>📦 Categorie</h3>
 
         
         

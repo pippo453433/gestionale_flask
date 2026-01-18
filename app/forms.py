@@ -66,3 +66,7 @@ class ModificaFornitoreForm(FlaskForm):
     telefono = StringField("Telefono")
     prodotti = SelectMultipleField("Prodotti associati", coerce=int)
     submit = SubmitField("💾 Salva modifiche")
+
+class CategoriaForm(FlaskForm):
+    nome = StringField("Nome Categoria", validators=[DataRequired()])
+    submit = SubmitField("Salva")
