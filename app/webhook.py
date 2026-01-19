@@ -105,13 +105,15 @@ def stripe_webhook():
         )
 
         # 🔥 ALLEGA PDF
+        # 🔥 ALLEGA PDF (VERSIONE CORRETTA)
         encoded_pdf = base64.b64encode(pdf_buffer.read()).decode()
-        attachment = Attachment(
-            FileContent(encoded_pdf),
-            FileName(f"fattura_{ordine.id}.pdf"),
-            FileType("application/pdf"),
-            Disposition("attachment")
-        )
+
+        attachment = Attachment()
+        attachment.file_content = FileContent(encoded_pdf)
+        attachment.file_type = FileType('application/pdf')
+        attachment.file_name = FileName(f'fattura_{ordine.id}.pdf')
+        attachment.disposition = Disposition('attachment')
+
         message.attachment = attachment
 
         # 🔥 INVIA EMAIL
