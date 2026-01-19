@@ -11,7 +11,7 @@ from wtforms.validators import DataRequired, Email
 
 def dominio_valido(form, field):
     email = field.data.lower()
-    domini_ammessi = ["gmail.com", "outlook.com", "azienda.it"]
+    domini_ammessi = ["gmail.com", "outlook.com", "azienda.it", "hotmail.com", "live.com", "msn.com", "yahoo.com", "icloud.com", "libero.it", "virgilio.it", "tiscali.it"]
 
     if not any(email.endswith("@" + dominio) for dominio in domini_ammessi):
         raise ValidationError("Dominio email non ammesso.")
