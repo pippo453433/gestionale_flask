@@ -154,13 +154,13 @@
 
         </a>#}
                 <!-- Metodo 2: Stripe Checkout -->
-        {#<a href="{{ url_for('main.create_checkout_session', ordine_id=ordine.id) }}" class="btn btn-success">
+        <a href="{{ url_for('main.create_checkout_session', ordine_id=ordine.id) }}" class="btn btn-success">
             ⚡ Paga 
-        </a>#}
+        </a>
 
-        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modaleDatiCliente">
+        {#<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modaleDatiCliente">
                ⚡ Paga
-        </button>
+        </button>#}
         <!-- Bottone torna indietro -->
         <a href="{% if current_user.ruolo == 'ADMIN' %}
                  {{ url_for('main.gestione_ordini_admin') }}
