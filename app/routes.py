@@ -417,8 +417,10 @@ def checkout():
             # 🧾 CREA ORDINE
             ordine = Ordine(
                 cliente_id=current_user.id,
-                totale=cart.get_total()
+                totale=cart.get_total(),
+                
             )
+            ordine.email = current_user.email
             db.session.add(ordine)
             db.session.flush()  # ottiene ordine.id
 
