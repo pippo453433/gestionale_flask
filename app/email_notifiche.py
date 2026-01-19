@@ -163,7 +163,7 @@ Grazie per aver acquistato da noi!
     try:
         sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
         message = Mail(
-            from_email="testdev99661@gmail.com",
+            from_email="testdev12311@outlook.com",
             to_emails=recipient,
             subject=subject,
             html_content=html,
