@@ -17,8 +17,6 @@ webhook_bp = Blueprint('webhook_bp', __name__)
 @webhook_bp.route('/webhook', methods=['POST'])
 def stripe_webhook():
     import stripe
-    
-    
 
     payload = request.data
     sig_header = request.headers.get('Stripe-Signature')
@@ -34,99 +32,96 @@ def stripe_webhook():
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         session_id = session['id']
-        current_app.logger.info(f"Ordine pagato: {ordine.id}")
-
 
         ordine = Ordine.query.filter_by(stripe_session_id=session_id).first()
 
-        if ordine:
-            ordine.pagato = True
-            db.session.commit()
-            
+        if not ordine:
+            current_app.logger.warning(f"nessun ordine trovato per session_id {session_id}")
+            return jsonify({'status': 'ok'}), 200
 
-            # 🔥 GENERA PDF
-            pdf_buffer = genera_fattura_pdf(ordine)
+        current_app.logger.info(f"Ordine pagato: {ordine.id}")
 
-            # 🔥 HTML elegante
-            html_content = f"""
-            <!DOCTYPE html>
-            <html>
-              <head>
-                <meta charset="UTF-8">
-                <style>
-                  body {{
-                    font-family: Arial, sans-serif;
-                    background-color: #f9f9f9;
-                    padding: 20px;
-                    color: #333;
-                  }}
-                  .container {{
-                    background-color: #fff;
-                    border-radius: 8px;
-                    padding: 20px;
-                    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-                  }}
-                  h2 {{
-                    color: #007BFF;
-                  }}
-                  .footer {{
-                    margin-top: 30px;
-                    font-size: 12px;
-                    color: #888;
-                  }}
-                </style>
-              </head>
-              <body>
-                <div class="container">
-                  <h2>Conferma pagamento ordine #{ordine.id}</h2>
-                  <p>Ciao {ordine.nome},</p>
-                  <p>Il tuo ordine <strong>#{ordine.id}</strong> è stato pagato con successo.</p>
-                  <p>In allegato trovi la fattura in PDF.</p>
-                  <p>Grazie per il tuo acquisto!</p>
-                  <div class="footer">
-                    Questa email è generata automaticamente dal sistema gestionale.
-                  </div>
-                </div>
-              </body>
-            </html>
-            """
+        ordine.pagato = True
+        db.session.commit()
 
-            # 🔥 CREA EMAIL SENDGRID
-            message = Mail(
-                from_email='testdev99661@gmail.com',
-                to_emails=ordine.email,
-                subject=f"Conferma pagamento ordine #{ordine.id}",
-                html_content=html_content
-            )
+        # 🔥 GENERA PDF
+        pdf_buffer = genera_fattura_pdf(ordine)
 
-            # 🔥 ALLEGA PDF
-            encoded_pdf = base64.b64encode(pdf_buffer.read()).decode()
-            attachment = Attachment(
-                FileContent(encoded_pdf),
-                FileName(f"fattura_{ordine.id}.pdf"),
-                FileType("application/pdf"),
-                Disposition("attachment")
-            )
-            message.attachment = attachment
+        # 🔥 HTML elegante
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+            <style>
+              body {{
+                font-family: Arial, sans-serif;
+                background-color: #f9f9f9;
+                padding: 20px;
+                color: #333;
+              }}
+              .container {{
+                background-color: #fff;
+                border-radius: 8px;
+                padding: 20px;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+              }}
+              h2 {{
+                color: #007BFF;
+              }}
+              .footer {{
+                margin-top: 30px;
+                font-size: 12px;
+                color: #888;
+              }}
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h2>Conferma pagamento ordine #{ordine.id}</h2>
+              <p>Ciao {ordine.nome},</p>
+              <p>Il tuo ordine <strong>#{ordine.id}</strong> è stato pagato con successo.</p>
+              <p>In allegato trovi la fattura in PDF.</p>
+              <p>Grazie per il tuo acquisto!</p>
+              <div class="footer">
+                Questa email è generata automaticamente dal sistema gestionale.
+              </div>
+            </div>
+          </body>
+        </html>
+        """
 
-            # 🔥 INVIA EMAIL
-            try:
-                sg = SendGridAPIClient(current_app.config['SENDGRID_API_KEY'])
-                response = sg.send(message)
-            except Exception as e:
-                current_app.logger.error(f"Errore invio email: {e}")
+        # 🔥 CREA EMAIL SENDGRID
+        message = Mail(
+            from_email='testdev99661@gmail.com',
+            to_emails=ordine.email,
+            subject=f"Conferma pagamento ordine #{ordine.id}",
+            html_content=html_content
+        )
 
-        else:
-            current_app.logger.warning("Ordine non trovato per session ID")
+        # 🔥 ALLEGA PDF
+        encoded_pdf = base64.b64encode(pdf_buffer.read()).decode()
+        attachment = Attachment(
+            FileContent(encoded_pdf),
+            FileName(f"fattura_{ordine.id}.pdf"),
+            FileType("application/pdf"),
+            Disposition("attachment")
+        )
+        message.attachment = attachment
 
-    
+        # 🔥 INVIA EMAIL
+        try:
+            sg = SendGridAPIClient(current_app.config['SENDGRID_API_KEY'])
+            response = sg.send(message)
+        except Exception as e:
+            current_app.logger.error(f"Errore invio email: {e}")
+
     return jsonify({'status': 'success'}), 200
 
-            
 
 # route fattura pdf
 def genera_fattura_pdf(ordine):
-    
+
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=A4)
 
@@ -134,7 +129,7 @@ def genera_fattura_pdf(ordine):
     y = altezza - 50
 
     # 🔵 HEADER COLORATO
-    pdf.setFillColorRGB(0.12, 0.47, 0.95)  # blu elegante
+    pdf.setFillColorRGB(0.12, 0.47, 0.95)
     pdf.rect(0, y - 40, larghezza, 60, fill=1, stroke=0)
 
     pdf.setFillColorRGB(1, 1, 1)
@@ -163,7 +158,6 @@ def genera_fattura_pdf(ordine):
     pdf.drawString(40, y, "Dettagli ordine:")
     y -= 25
 
-    # Header tabella
     pdf.setFillColorRGB(0.88, 0.95, 1)
     pdf.rect(30, y - 20, larghezza - 60, 25, fill=1, stroke=0)
 
@@ -189,7 +183,6 @@ def genera_fattura_pdf(ordine):
             pdf.showPage()
             y = altezza - 50
 
-    # 🔹 TOTALE EVIDENZIATO
     pdf.setFillColorRGB(0.95, 0.95, 0.95)
     pdf.rect(300, y - 30, 200, 30, fill=1, stroke=0)
 
