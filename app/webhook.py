@@ -95,6 +95,8 @@ def stripe_webhook():
         """
 
         # 🔥 CREA EMAIL SENDGRID
+        current_app.logger.info(f"Destinatario email: {ordine.email}")
+        current_app.logger.info(f"PDF size: {pdf_buffer.getbuffer().nbytes} bytes")
         message = Mail(
             from_email='testdev99661@gmail.com',
             to_emails=ordine.email,
