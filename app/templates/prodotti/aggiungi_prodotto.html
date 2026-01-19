@@ -9,6 +9,7 @@
     <hr>
 
     <form method="POST" class="form-grid">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-group">
             <label for="codice">Codice prodotto</label>
             <input type="text" name="codice" id="codice" required>

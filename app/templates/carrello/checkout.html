@@ -27,6 +27,7 @@
 
     <!-- Campo note opzionale -->
     <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"
         <div class="mb-3">
             <label class="form-label">Note per l'ordine (opzionale)</label>
             <textarea name="note" class="form-control" rows="3"

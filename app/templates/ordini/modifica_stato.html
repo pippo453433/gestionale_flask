@@ -6,6 +6,7 @@
     <h2 class="mb-3">✏️ Modifica stato ordine #{{ ordine.id }}</h2>
 
     <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="mb-3">
             <label for="stato" class="form-label">Nuovo stato</label>
             <select name="stato" id="stato" class="form-select">

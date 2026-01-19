@@ -6,6 +6,7 @@
 <h2>✏️ Modifica Fornitore</h2>
 
 <form method="POST" class="form-box">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="origine" value="{{ origine }}">
 
     <div class="form-group">

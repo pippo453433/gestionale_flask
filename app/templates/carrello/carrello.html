@@ -94,6 +94,7 @@
 
             <!-- FORM AGGIORNA -->
             <form method="POST" action="{{ url_for('main.cart_view') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <table class="table cart-table">
                     <thead>
                         <tr>
@@ -151,6 +152,7 @@
                     {% if current_user.is_authenticated and current_user.ruolo == "CLIENTE" %}
                     </form> <!-- chiudo form aggiornamento prima di aprire gli altri -->
                     <form method="POST" action="{{ url_for('main.checkout') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="btn btn-order">🧾 Ordina</button>
                     </form>
                     {% else %}

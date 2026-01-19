@@ -996,7 +996,7 @@ def create_checkout_session(ordine_id):
 
     if ordine.stato == "CONFERMATO":
         flash("Questo ordine risulta gia pagato.", "info")
-        return redirect(url_for('main.ordine_dettaglio', id=ordine.id))
+        return redirect(url_for('main.dettaglio_ordine', id=ordine.id))
 
     stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
 
@@ -1007,7 +1007,7 @@ def create_checkout_session(ordine_id):
     for det in ordine.dettagli:
         if det.quantita > det.prodotto.quantita:
             flash(f"Il prodotto {det.prodotto.nome} non è piu disponibile in quantita sufficiente.", "danger")
-            return redirect(url_for('main.ordine_dettaglio', id=ordine.id))
+            return redirect(url_for('main.dettaglio_ordine', id=ordine.id))
     stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
 
     # Line items per Stripe (DEVE essere prima del print)

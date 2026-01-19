@@ -133,6 +133,7 @@
                 <div class="d-flex align-items-center mt-3" style="gap: 8px;">
                     <a href="{{ url_for('main.prodotto_update', id=p.id) }}" class="btn btn-warning btn-sm">✏️ Modifica</a>
                     <form method="POST" action="{{ url_for('main.prodotto_delete', id=p.id) }}" onsubmit="return confirm('Eliminare questo prodotto?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button class="btn btn-danger btn-sm">🗑️ Elimina</button>
                     </form>
                 </div>

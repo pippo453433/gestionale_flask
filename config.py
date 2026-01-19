@@ -20,7 +20,7 @@ class Config:
     SESSION_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_SECURE = False  # Metti True quando passi a HTTPS
     REMEMBER_COOKIE_HTTPONLY = True
-    WTF_CSRF_TIME_LIMIT = None
+    
 
 
 

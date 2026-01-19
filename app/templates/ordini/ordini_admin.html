@@ -172,6 +172,7 @@
 
                         <!-- CAMBIO STATO -->
                         <form method="POST" action="{{ url_for('main.modifica_stato_ordine', id=ordine.id) }}" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="page" value="{{ ordini.page }}">
                             <select name="stato" class="form-select form-select-sm d-inline w-auto">
                                 {% for s in stati %}

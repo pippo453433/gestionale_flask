@@ -10,11 +10,15 @@ import stripe
 from config import config
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_wtf import CSRFProtect
+
 
 
 mail = Mail()
 db = SQLAlchemy()
 migrate = Migrate()
+csrf = CSRFProtect()
+
 
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
@@ -27,7 +31,7 @@ limiter = Limiter(
 def create_app():
     app = Flask(__name__)
     limiter.init_app(app)
-    
+    csrf.init_app(app)
 
     # Carica la configurazione
     env = os.getenv('FLASK_ENV', 'development')

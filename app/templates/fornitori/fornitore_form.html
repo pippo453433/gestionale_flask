@@ -1,6 +1,7 @@
 <h1>Nuovo Fornitore</h1>
 
 <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     <label>Ragione Sociale</label><br>
     <input type="text" name="ragione_sociale" required><br><br>

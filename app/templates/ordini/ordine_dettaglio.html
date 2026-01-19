@@ -133,10 +133,12 @@
                 {% endfor %}
             </tbody>
         </table>
-        <a href="{{ url_for('main.gestione_ordini_admin') }}" 
-            class="btn btn-sm btn-secondary mt-3">
+        {% if current_user.ruolo == 'ADMIN' %}
+            <a href="{{ url_for('main.gestione_ordini_admin') }}" 
+                class="btn btn-sm btn-secondary mt-3">
              🔙 Torna a tutti gli ordini
-        </a>
+            </a>
+        {% endif %}
 
 
 
