@@ -28,6 +28,9 @@ def stripe_webhook():
         )
     except Exception:
         return jsonify({'error': 'Invalid payload'}), 400
+    
+    current_app.logger.info(f"SendGrid key loaded: {bool(current_app.config['SENDGRID_API_KEY'])}")
+
 
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
