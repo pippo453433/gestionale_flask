@@ -2,8 +2,6 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-
-
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -15,37 +13,33 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_wtf import CSRFProtect
 
-
-
 mail = Mail()
 db = SQLAlchemy()
 migrate = Migrate()
 csrf = CSRFProtect()
 
-
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
 
 limiter = Limiter(
-        key_func=get_remote_address,
-        default_limits=[]
-    )
+    key_func=get_remote_address,
+    default_limits=[]
+)
 
 def create_app():
-    
 
     app = Flask(__name__)
     limiter.init_app(app)
     csrf.init_app(app)
 
-    # Carica la configurazione
+    # Carica configurazione
     env = os.getenv('FLASK_ENV', 'development')
     app.config.from_object(config[env])
 
-    # 🔥 AGGIUNGI QUESTA RIGA
+    # Stripe webhook secret
     app.config['STRIPE_WEBHOOK_SECRET'] = os.environ.get('STRIPE_WEBHOOK_SECRET')
 
-    # Imposta la chiave Stripe corretta
+    # Chiave Stripe
     stripe.api_key = app.config['STRIPE_SECRET_KEY']
 
     # Inizializza estensioni
@@ -62,22 +56,23 @@ def create_app():
             user_id = int(user_id)
         except (TypeError, ValueError):
             return None
-        user = User.query.get(user_id)
-        return user
+        return User.query.get(user_id)
 
-    # Blueprint
+    # Blueprint autenticazione
     from app.auth.routes import auth
     app.register_blueprint(auth)
-    
-    
 
-    from app.webhook import webhook_bp
-    csrf.exempt(webhook_bp)
-    app.register_blueprint(webhook_bp) 
+    # 🔥 IMPORTA LA FUNZIONE DEL WEBHOOK (NON IL BLUEPRINT)
+    from app.webhook import stripe_webhook
 
+    # 🔥 DISATTIVA CSRF SOLO PER QUESTA FUNZIONE
+    csrf.exempt(stripe_webhook)
+
+    # 🔥 REGISTRA LA ROUTE MANUALMENTE
+    app.add_url_rule('/webhook', view_func=stripe_webhook, methods=['POST'])
+
+    # Blueprint principale
     from app.routes import main
     app.register_blueprint(main)
-    
-    
-    
+
     return app
