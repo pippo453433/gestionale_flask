@@ -70,3 +70,13 @@ class ModificaFornitoreForm(FlaskForm):
 class CategoriaForm(FlaskForm):
     nome = StringField("Nome Categoria", validators=[DataRequired()])
     submit = SubmitField("Salva")
+
+
+class SpedizioneForm(FlaskForm):
+    nome = StringField('Nome', validators=[DataRequired()])
+    cognome = StringField('Cognome', validators=[DataRequired()])
+    indirizzo = StringField('Indirizzo', validators=[DataRequired()])
+    citta = StringField('Città', validators=[DataRequired()])
+    cap = StringField('CAP', validators=[DataRequired()])
+    telefono = StringField('Telefono')
+    note = TextAreaField('Note')

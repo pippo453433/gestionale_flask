@@ -1,0 +1,55 @@
+{% extends 'layout/base.html' %}
+{% block title %}📦 Dati di spedizione{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <h2 class="mb-4">📦 Dati di spedizione per ordine #{{ "%05d"|format(ordine.id) }}</h2>
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label>Nome</label>
+                <input type="text" name="nome" class="form-control" required>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label>Cognome</label>
+                <input type="text" name="cognome" class="form-control" required>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label>Indirizzo</label>
+            <input type="text" name="indirizzo" class="form-control" required>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label>Città</label>
+                <input type="text" name="citta" class="form-control" required>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <label>CAP</label>
+                <input type="text" name="cap" class="form-control" required>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <label>Telefono</label>
+                <input type="text" name="telefono" class="form-control">
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label>Note per la consegna</label>
+            <textarea name="note" class="form-control" rows="3"></textarea>
+        </div>
+
+        <button class="btn btn-primary mt-3">Continua al pagamento</button>
+    </form>
+</div>
+
+{% endblock %}

@@ -18,6 +18,12 @@ import csv
 from io import StringIO
 from datetime import datetime
 from .forms import CategoriaForm
+from app.forms import SpedizioneForm
+from app.utils.token import verifica_token
+from app.models import User
+
+
+
 
 
 
@@ -320,7 +326,7 @@ def dettaglio_ordine(id):
         flash('Accesso negato', 'danger')
         return redirect(url_for('main.i_miei_ordini'))
 
-    return render_template('ordini/ordine_dettaglio.html', ordine=ordine)
+    return render_template('ordini/ordine_dettaglio.html', ordine=ordine, STRIPE_PUBLIC_KEY=current_app.config["STRIPE_PUBLIC_KEY"])
 
 
 
@@ -393,12 +399,12 @@ def checkout():
     # Carrello vuoto
     if len(cart) == 0:
         flash("Carrello vuoto", "warning")
-        return redirect(url_for('main.cart_detail'))
+        return redirect(url_for('main.cart_view'))
 
     if request.method == "POST":
         errori = []
 
-        # Controlli su quantità e stock
+        # Controlli quantità e stock
         for item in cart:
             prodotto = Prodotto.query.get(item['prodotto_id'])
             if not prodotto:
@@ -411,16 +417,16 @@ def checkout():
         if errori:
             for e in errori:
                 flash(e, "danger")
-            return redirect(url_for('main.cart_detail'))
+            return redirect(url_for('main.cart_view'))
 
         try:
             # 🧾 CREA ORDINE
             ordine = Ordine(
                 cliente_id=current_user.id,
                 totale=cart.get_total(),
-                
+                email=current_user.email
             )
-            ordine.email = current_user.email
+
             db.session.add(ordine)
             db.session.flush()  # ottiene ordine.id
 
@@ -443,12 +449,9 @@ def checkout():
             # Svuota carrello
             cart.clear()
 
-            # 🔥 SALVA ORDINE IN SESSIONE PER STRIPE
-            session["ordine_id"] = ordine.id
+            flash("Ordine creato! Procedi al pagamento.", "success")
 
-            flash(f"Ordine #{ordine.id} creato, procedi al pagamento", "success")
-
-            # 🔁 VAI AL CHECKOUT STRIPE
+            # 🔥 TORNA AL VECCHIO FLUSSO → pagina dettaglio ordine
             return redirect(url_for('main.dettaglio_ordine', id=ordine.id))
 
         except Exception as e:
@@ -457,7 +460,7 @@ def checkout():
             flash("Errore durante il checkout. Riprova.", "danger")
             return redirect(url_for('main.cart_view'))
 
-    # GET → mostra pagina riepilogo prima del pagamento
+    # GET → mostra pagina riepilogo prima dell'ordine
     return render_template("carrello/checkout.html", cart=cart)
 
 
@@ -501,10 +504,10 @@ def statistiche_ordini():
 def dettaglio_prodotto(id):
     prodotto = Prodotto.query.get_or_404(id)
 
-    if current_user.is_authenticated and current_user.ruolo == "FORNITORE":
-        if current_user not in prodotto.fornitori:
-            flash("Non hai accesso a questo prodotto")
-            return redirect(url_for('main.dashboard_fornitore'))
+#    if current_user.is_authenticated and current_user.ruolo == "FORNITORE":
+#        if current_user not in prodotto.fornitori:
+#            flash("Non hai accesso a questo prodotto")
+#            return redirect(url_for('main.dashboard_fornitore'))
 
     return render_template('prodotti/dettaglio_prodotto.html', prodotto=prodotto)
 
@@ -985,9 +988,9 @@ def test_stripe():
 #    return render_template("carrello/success.html", ordine=ordine)
 
 #crea pagamento stripe
-@main.route('/pagamento/<int:ordine_id>')
+@main.route('/pagamento/crea-sessione/<int:ordine_id>')
 @login_required
-def create_checkout_session(ordine_id):
+def crea_sessione_stripe(ordine_id):
     import stripe
     from flask import current_app
     from flask_login import current_user
@@ -1060,49 +1063,49 @@ def pagamento_cancel(ordine_id):
     return render_template("carrello/cancel.html", ordine=ordine)
 
 #ROUTE PAGAMENTO STRIPE
-@main.route('/prepare_checkout_stripe/<int:ordine_id>', methods=['POST'])
-def prepare_checkout_stripe(ordine_id):
-    import stripe
-    stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
-    ordine = Ordine.query.get_or_404(ordine_id)
-    if ordine.cliente_id != current_user.id:
-        flash("non puoi pagare un ordine non tuo", "danger")
-        return redirect(url_for('main.home'))
-    # 1. CREA CUSTOMER STRIPE SE NON ESISTE
-    if current_user.stripe_customer_id is None:
-        customer = stripe.Customer.create(
-            email=current_user.email,
+#@main.route('/prepare_checkout_stripe/<int:ordine_id>', methods=['POST'])
+#def prepare_checkout_stripe(ordine_id):
+#    import stripe
+#    stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+#    ordine = Ordine.query.get_or_404(ordine_id)
+#    if ordine.cliente_id != current_user.id:
+#        flash("non puoi pagare un ordine non tuo", "danger")
+#        return redirect(url_for('main.home'))
+#    # 1. CREA CUSTOMER STRIPE SE NON ESISTE
+#    if current_user.stripe_customer_id is None:
+#        customer = stripe.Customer.create(
+#            email=current_user.email,
             
-        )
-        current_user.stripe_customer_id = customer.id
-        db.session.commit() 
+#        )
+#        current_user.stripe_customer_id = customer.id
+#        db.session.commit() 
             # 2. CREA SESSIONE CHECKOUT LEGATA AL CUSTOMER
-    session = stripe.checkout.Session.create(
-        payment_method_types=['card'],
-        mode='payment',
-        customer=current_user.stripe_customer_id,
-        line_items=[
-            {
-                'price_data': {
-                    'currency': 'eur',
-                    'product_data': {
-                        'name': f"Ordine #{ordine.id}",
+#    session = stripe.checkout.Session.create(
+#        payment_method_types=['card'],
+#        mode='payment',
+#        customer=current_user.stripe_customer_id,
+#        line_items=[
+#            {
+#                'price_data': {
+#                    'currency': 'eur',
+#                    'product_data': {
+#                        'name': f"Ordine #{ordine.id}",
 
-                    },
-                    'unit_amount': int(ordine.totale * 100),
-                },
-                'quantity': 1,
-            }
-        ],
-        metadata={
-            'ordine_id': ordine.id,
-            'utente_id': current_user.id
-        },
+#                    },
+#                    'unit_amount': int(ordine.totale * 100),
+#                },
+#                'quantity': 1,
+#            }
+#        ],
+#        metadata={
+#            'ordine_id': ordine.id,
+#            'utente_id': current_user.id
+#        },
         
-        success_url=url_for('main.pagamento_success', ordine_id=ordine.id, _external=True),
-        cancel_url=url_for('main.pagamento_cancel', ordine_id=ordine.id, _external=True)
-    )
-    return redirect(session.url, code=303)
+#        success_url=url_for('main.pagamento_success', ordine_id=ordine.id, _external=True),
+#        cancel_url=url_for('main.pagamento_cancel', ordine_id=ordine.id, _external=True)
+#    )
+#    return redirect(session.url, code=303)
 
   
 
@@ -1209,3 +1212,44 @@ def nuova_categoria():
         return redirect(url_for('main.categorie'))
 
     return render_template('categorie/categorie_admin.html', form=form)
+
+#ROUTE PER INSERIRE DATI DELLA SPEDIZIONE
+@main.route('/ordine/<int:ordine_id>/spedizione', methods=['GET', 'POST'])
+@login_required
+def dati_spedizione(ordine_id):
+    ordine = Ordine.query.get_or_404(ordine_id)
+
+    # Sicurezza: solo il proprietario può modificare i suoi dati
+    if ordine.cliente.id != current_user.id:
+        return redirect(url_for('main.home'))
+    
+    form = SpedizioneForm()
+
+    if request.method == 'POST':
+        ordine.nome_spedizione = request.form['nome']
+        ordine.cognome_spedizione = request.form['cognome']
+        ordine.indirizzo = request.form['indirizzo']
+        ordine.citta = request.form['citta']
+        ordine.cap = request.form['cap']
+        ordine.telefono = request.form['telefono']
+        ordine.note_spedizione = request.form.get('note', '')
+
+        db.session.commit()
+
+        # Dopo aver salvato → vai a Stripe
+        return redirect(url_for('main.crea_sessione_stripe', ordine_id=ordine.id))
+
+    return render_template('ordini/spedizione.html', form=form, ordine=ordine)
+
+
+#@main.route("/verify/<token>")
+#def conferma_email(token):
+#    try:
+#        email = verifica_token(token)
+#    except:
+#        return "Link non valido o scaduto"
+#    user = User.query.filter_by(email=email).first_or_404()
+#    user.email_verificata = True
+#    db.session.commit()
+#    flash("Email confermata| ora puoi accedere")
+#    return redirect(url_for('auth.login'))

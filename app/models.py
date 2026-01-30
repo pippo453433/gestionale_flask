@@ -22,11 +22,17 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
     ruolo = db.Column(db.String(20), nullable=False, default="CLIENTE")  # CLIENTE, FORNITORE, ADMIN
+    # Campi aziendali (solo per fornitori)
+    company_name = db.Column(db.String(120))
+    partita_iva = db.Column(db.String(20))
+    indirizzo_azienda =db.Column(db.String(200))
+    telefono_azienda = db.Column(db.String(20))
 
     ragione_sociale = db.Column(db.String(100))
     partita_iva = db.Column(db.String(20))
     telefono = db.Column(db.String(20))
     stripe_customer_id = db.Column(db.String(255), nullable=True)
+    email_verificata = db.Column(db.Boolean, default=False)
 
     # Relazione molti-a-molti con Prodotto
     prodotti = db.relationship(
@@ -93,6 +99,7 @@ class Ordine(db.Model):
     email = db.Column(db.String(100))
     pagato = db.Column(db.Boolean, default=False)
     stripe_session_id = db.Column(db.String(100))
+    stripe_payment_intent = db.Column(db.String(255))
 
 class OrdineDettaglio(db.Model):
     id = db.Column(db.Integer, primary_key=True)

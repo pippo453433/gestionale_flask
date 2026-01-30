@@ -5,125 +5,64 @@ from app.models import db, Ordine
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from io import BytesIO
+from app.utils.email_notifiche_pagamento import invia_email_conferma_pagamento
 
 # SendGrid
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition
 import base64
+from app.email_utils import send_email 
 
 
 webhook_bp = Blueprint('webhook_bp', __name__)
 
 @webhook_bp.route('/webhook', methods=['POST'])
 def stripe_webhook():
+    
+
     import stripe
 
     payload = request.data
     sig_header = request.headers.get('Stripe-Signature')
+    
     endpoint_secret = current_app.config['STRIPE_WEBHOOK_SECRET']
 
     try:
         event = stripe.Webhook.construct_event(
             payload, sig_header, endpoint_secret
         )
-    except Exception:
+    except Exception as e:
+        print("❌ ERRORE VERIFICA FIRMA:", e)
         return jsonify({'error': 'Invalid payload'}), 400
-    
+
     current_app.logger.info(f"SendGrid key loaded: {bool(current_app.config['SENDGRID_API_KEY'])}")
 
-
     if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-        session_id = session['id']
-
-        ordine = Ordine.query.filter_by(stripe_session_id=session_id).first()
-
-        if not ordine:
-            current_app.logger.warning(f"nessun ordine trovato per session_id {session_id}")
-            return jsonify({'status': 'ok'}), 200
-
-        current_app.logger.info(f"Ordine pagato: {ordine.id}")
-
-        ordine.pagato = True
-        db.session.commit()
-
-        # 🔥 GENERA PDF
-        pdf_buffer = genera_fattura_pdf(ordine)
-
-        # 🔥 HTML elegante
-        html_content = f"""
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="UTF-8">
-            <style>
-              body {{
-                font-family: Arial, sans-serif;
-                background-color: #f9f9f9;
-                padding: 20px;
-                color: #333;
-              }}
-              .container {{
-                background-color: #fff;
-                border-radius: 8px;
-                padding: 20px;
-                box-shadow: 0 0 10px rgba(0,0,0,0.1);
-              }}
-              h2 {{
-                color: #007BFF;
-              }}
-              .footer {{
-                margin-top: 30px;
-                font-size: 12px;
-                color: #888;
-              }}
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <h2>Conferma pagamento ordine #{ordine.id}</h2>
-              <p>Ciao {ordine.nome},</p>
-              <p>Il tuo ordine <strong>#{ordine.id}</strong> è stato pagato con successo.</p>
-              <p>In allegato trovi la fattura in PDF.</p>
-              <p>Grazie per il tuo acquisto!</p>
-              <div class="footer">
-                Questa email è generata automaticamente dal sistema gestionale.
-              </div>
-            </div>
-          </body>
-        </html>
-        """
-
-        # 🔥 CREA EMAIL SENDGRID
-        current_app.logger.info(f"Destinatario email: {ordine.email}")
-        current_app.logger.info(f"PDF size: {pdf_buffer.getbuffer().nbytes} bytes")
-        message = Mail(
-            from_email='testdev99661@gmail.com',
-            to_emails=ordine.email,
-            subject=f"Conferma pagamento ordine #{ordine.id}",
-            html_content=html_content
-        )
-
-        # 🔥 ALLEGA PDF
-        # 🔥 ALLEGA PDF (VERSIONE CORRETTA)
-        encoded_pdf = base64.b64encode(pdf_buffer.read()).decode()
-
-        attachment = Attachment()
-        attachment.file_content = FileContent(encoded_pdf)
-        attachment.file_type = FileType('application/pdf')
-        attachment.file_name = FileName(f'fattura_{ordine.id}.pdf')
-        attachment.disposition = Disposition('attachment')
-
-        message.attachment = attachment
-
-        # 🔥 INVIA EMAIL
         try:
-            sg = SendGridAPIClient(current_app.config['SENDGRID_API_KEY'])
-            response = sg.send(message)
+            session = event['data']['object']
+            session_id = session['id']
+            payment_intent = session.get('payment_intent')
+
+            ordine = Ordine.query.filter_by(stripe_session_id=session_id).first()
+            if not ordine:
+                current_app.logger.warning(f"Nessun ordine trovato per session_id {session_id}")
+                return jsonify({'status': 'ok'}), 200
+
+            ordine.pagato = True
+            ordine.stato = "CONFERMATO"
+            ordine.stripe_payment_intent = payment_intent
+            db.session.commit()
+
+            pdf_buffer = genera_fattura_pdf(ordine)
+            invia_email_conferma_pagamento(ordine, pdf_buffer)
+
         except Exception as e:
-            current_app.logger.error(f"Errore invio email: {e}")
+            current_app.logger.error(f"Errore nel webhook: {e}")
+            return jsonify({'status': 'errore'}), 500
 
     return jsonify({'status': 'success'}), 200
+
+        
 
 
 # route fattura pdf

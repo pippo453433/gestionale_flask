@@ -1,12 +1,16 @@
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition
-import base64
 import os
+import json
+import base64
+import requests
+import certifi
 
 def invia_email_conferma_pagamento(ordine, pdf_buffer):
+    print(f"📤 Invio email a {ordine.email}")
+    print(f"📎 PDF size: {pdf_buffer.getbuffer().nbytes} bytes")
+
     subject = f"Conferma pagamento ordine #{ordine.id}"
     recipient = ordine.email
-    mittente = "testdev99661@gmail.com"  # mittente verificato
+    mittente = "testdev12311@outlook.com"  # mittente verificato
 
     # Corpo testo (fallback)
     testo_plain = (
@@ -17,9 +21,8 @@ def invia_email_conferma_pagamento(ordine, pdf_buffer):
         "Grazie per aver acquistato da noi!"
     )
 
-    # HTML elegante
-    html_template = f"""
-    <!DOCTYPE html>
+    # HTML elegante (non modificato)
+    html_template = f"""<!DOCTYPE html>
     <html lang="it">
     <head>
       <meta charset="UTF-8">
@@ -60,32 +63,44 @@ def invia_email_conferma_pagamento(ordine, pdf_buffer):
 
       </div>
     </body>
-    </html>
-    """
+    </html>"""
 
     # Codifica PDF in base64
+    pdf_buffer.seek(0)
     pdf_base64 = base64.b64encode(pdf_buffer.read()).decode()
 
-    attachment = Attachment()
-    attachment.file_content = FileContent(pdf_base64)
-    attachment.file_type = FileType("application/pdf")
-    attachment.file_name = FileName(f"Fattura_{ordine.id}.pdf")
-    attachment.disposition = Disposition("attachment")
+    # Costruzione payload SendGrid
+    data = {
+        "personalizations": [{
+            "to": [{"email": recipient}],
+            "subject": subject
+        }],
+        "from": {"email": mittente},
+        "content": [
+            {"type": "text/plain", "value": testo_plain},
+            {"type": "text/html", "value": html_template}
+        ],
+        "attachments": [{
+            "content": pdf_base64,
+            "type": "application/pdf",
+            "filename": f"Fattura_{ordine.id}.pdf",
+            "disposition": "attachment"
+        }]
+    }
 
-    # Email SendGrid
-    message = Mail(
-        from_email=mittente,
-        to_emails=recipient,
-        subject=subject,
-        plain_text_content=testo_plain,
-        html_content=html_template
-    )
-    message.attachment = attachment
+    headers = {
+        "Authorization": f"Bearer {os.getenv('SENDGRID_API_KEY')}",
+        "Content-Type": "application/json"
+    }
 
     try:
-        sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
-        response = sg.send(message)
-        print(f"[EMAIL] Fattura PDF inviata a {recipient}")
-        print("SENDGRID STATUS:", response.status_code)
+        response = requests.post(
+            "https://api.sendgrid.com/v3/mail/send",
+            headers=headers,
+            data=json.dumps(data),
+            verify=certifi.where()
+        )
+        
+        print(response.text)
     except Exception as e:
         print(f"[ERRORE EMAIL] {e}")

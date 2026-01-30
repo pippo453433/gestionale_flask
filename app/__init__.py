@@ -1,6 +1,9 @@
 import os
 from dotenv import load_dotenv
 load_dotenv()
+
+
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -29,6 +32,8 @@ limiter = Limiter(
     )
 
 def create_app():
+    
+
     app = Flask(__name__)
     limiter.init_app(app)
     csrf.init_app(app)
@@ -63,13 +68,16 @@ def create_app():
     # Blueprint
     from app.auth.routes import auth
     app.register_blueprint(auth)
+    
+    
 
     from app.webhook import webhook_bp
-    app.register_blueprint(webhook_bp)
+    csrf.exempt(webhook_bp)
+    app.register_blueprint(webhook_bp) 
 
     from app.routes import main
     app.register_blueprint(main)
-
     
-
+    
+    
     return app

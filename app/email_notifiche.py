@@ -3,6 +3,9 @@ from datetime import datetime
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 import os
+import requests
+import certifi
+import json
 
 def invia_notifica_ordine(ordine, vecchio_stato, app=None):
     """
@@ -160,17 +163,35 @@ Grazie per aver acquistato da noi!
 """
 
     # INVIO CON SENDGRID
+        # INVIO CON REQUESTS + CERTIFI
     try:
-        sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
-        message = Mail(
-            from_email="testdev12311@outlook.com",
-            to_emails=recipient,
-            subject=subject,
-            html_content=html,
-            plain_text_content=testo_plain
+        data = {
+            "personalizations": [{
+                "to": [{"email": recipient}],
+                "subject": subject
+            }],
+            "from": {"email": "testdev12311@outlook.com"},
+            "content": [
+                {"type": "text/plain", "value": testo_plain},
+                {"type": "text/html", "value": html}
+            ]
+        }
+
+        headers = {
+            "Authorization": f"Bearer {os.getenv('SENDGRID_API_KEY')}",
+            "Content-Type": "application/json"
+        }
+
+        response = requests.post(
+            "https://api.sendgrid.com/v3/mail/send",
+            headers=headers,
+            data=json.dumps(data),
+            verify=certifi.where()
         )
-        response = sg.send(message)
+
         print(f"[EMAIL] Notifica HTML inviata a {recipient}")
         print("SENDGRID STATUS:", response.status_code)
+        print("SENDGRID RESPONSE:", response.text)
+
     except Exception as e:
         print(f"[ERRORE EMAIL] {e}")

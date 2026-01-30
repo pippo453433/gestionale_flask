@@ -50,7 +50,25 @@
 
         <div class="mb-3">
             {{ form.ruolo.label(class="form-label") }}
-            {{ form.ruolo(class="form-select") }}
+            {{ form.ruolo(class="form-select", id="ruolo") }}
+        </div>
+        <div id="fornitore-fields" style="display: none;">
+            <div class="mb-3">
+                <label class="form-label">Nome Azienda</label>
+                <input type="text" name="company_name" class="form-control" placeholder="Inserisci nome azienda">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Partita IVA</label>
+                <input type="text" name="partita_iva" class="form-control" placeholder="Inserisci Partita IVA">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Indirizzo azienda</label>
+                <input type="text" name="indirizzo_azienda" class="form-control" placeholder="Inserisci indirizzo">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Telefono Azienda</label>
+                <input type="text" name="telefono_azienda" class="form-control" placeholder="Inserisci Telefono azienda">
+            </div>
         </div>
 
         <div class="d-grid">
@@ -79,6 +97,20 @@ document.addEventListener("DOMContentLoaded", function () {
         ruleNumber.style.color = /[0-9]/.test(value) ? "green" : "red";
         ruleSpecial.style.color = /[!@#$%^&*]/.test(value) ? "green" : "red";
     });
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const ruoloSelect = document.getElementById("ruolo");
+    const fornitoreFields = document.getElementById("fornitore-fields");
+
+    function toggleFornitoreFields() {
+        fornitoreFields.style.display =
+            ruoloSelect.value === "FORNITORE" ? "block" : "none";
+    }
+
+    ruoloSelect.addEventListener("change", toggleFornitoreFields);
+    toggleFornitoreFields();
 });
 </script>
 {% endblock %}

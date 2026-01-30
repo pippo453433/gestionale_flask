@@ -32,7 +32,6 @@
         margin-top: 20px;
     }
 
-    /* TIMELINE */
     .timeline {
         display: flex;
         justify-content: space-between;
@@ -55,61 +54,52 @@
         display: block;
         font-size: 22px;
     }
-
 </style>
 
 <div class="container mt-4">
 
-    <!-- TITOLO CON ID FORMATTATO -->
     <h2 class="mb-4">📦 Dettaglio ordine #{{ "%05d"|format(ordine.id) }}</h2>
-    
-    <!-- TIMELINE STATO -->
-     <div class="timeline">
 
-    <div class="timeline-step {% if ordine.stato == 'PENDING' %}active{% endif %}">
-        <span>🕒</span>
-        PENDING
+    <div class="timeline">
+
+        <div class="timeline-step {% if ordine.stato == 'PENDING' %}active{% endif %}">
+            <span>🕒</span>
+            PENDING
+        </div>
+
+        <div class="timeline-step {% if ordine.stato == 'SPEDITO' %}active{% endif %}">
+            <span>📦</span>
+            SPEDITO
+        </div>
+
+        <div class="timeline-step {% if ordine.stato == 'CONSEGNATO' %}active{% endif %}">
+            <span>✅</span>
+            CONSEGNATO
+        </div>
+
+        <div class="timeline-step {% if ordine.stato|upper == 'ANNULLATO' %}active{% endif %}">
+            <span>❌</span>
+            ANNULLATO
+        </div>
+
     </div>
-
-    <div class="timeline-step {% if ordine.stato == 'SPEDITO' %}active{% endif %}">
-        <span>📦</span>
-        SPEDITO
-    </div>
-
-    <div class="timeline-step {% if ordine.stato == 'CONSEGNATO' %}active{% endif %}">
-        <span>✅</span>
-        CONSEGNATO
-    </div>
-
-    <div class="timeline-step {% if ordine.stato|upper == 'ANNULLATO' %}active{% endif %}">
-        <span>❌</span>
-        ANNULLATO
-    </div>
-
-</div>
-    
 
     <div class="order-box">
 
-        <!-- DATA ORDINE -->
         <p><strong>Data ordine:</strong> {{ ordine.data_ordine.strftime('%d/%m/%Y %H:%M') }}</p>
 
-        <!-- STATO ORDINE -->
         <p>
             <strong>Stato:</strong>
             {% set s = ordine.stato.lower() %}
-            
             <span class="status-badge {{ s }}">{{ ordine.stato }}</span>
         </p>
 
-        <!-- NOTE -->
         {% if ordine.note %}
         <p><strong>Note:</strong> {{ ordine.note }}</p>
         {% endif %}
 
         <hr>
 
-        <!-- PRODOTTI -->
         <h4 class="mt-3 mb-3">🛒 Prodotti</h4>
 
         <table class="table align-middle">
@@ -133,79 +123,40 @@
                 {% endfor %}
             </tbody>
         </table>
+
         {% if current_user.ruolo == 'ADMIN' %}
-            <a href="{{ url_for('main.gestione_ordini_admin') }}" 
-                class="btn btn-sm btn-secondary mt-3">
-             🔙 Torna a tutti gli ordini
+            <a href="{{ url_for('main.gestione_ordini_admin') }}"
+               class="btn btn-sm btn-secondary mt-3">
+               🔙 Torna a tutti gli ordini
             </a>
         {% endif %}
 
-
-
-        <!-- TOTALE -->
         <div class="total-box">
             Totale ordine: € {{ "%.2f"|format(ordine.totale) }}
         </div>
 
     </div>
-    {% if ordine.stato == 'PENDING' %}
+
     <div class="mt-4 d-flex gap-2">
-        <!-- Metodo 1: PaymentIntent -->
-        {#<a href="{{ url_for('main.checkout_payment', order_id=ordine.id) }}" class="btn btn-primary">
-            💳 Paga con Carta (Form interno)
 
-        </a>#}
-                <!-- Metodo 2: Stripe Checkout -->
-        <a href="{{ url_for('main.create_checkout_session', ordine_id=ordine.id) }}" class="btn btn-success">
-            ⚡ Paga 
+        {% if ordine.stato == 'PENDING' %}
+        <a href="{{ url_for('main.dati_spedizione', ordine_id=ordine.id) }}"
+           class="btn btn-success">
+           ⚡ Paga ora
         </a>
+        {% endif %}
 
-        {#<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modaleDatiCliente">
-               ⚡ Paga
-        </button>#}
-        <!-- Bottone torna indietro -->
         <a href="{% if current_user.ruolo == 'ADMIN' %}
                  {{ url_for('main.gestione_ordini_admin') }}
-                {% else %}
-                  {{ url_for('main.i_miei_ordini') }}
-                {% endif %}" class="btn btn-secondary">
-               ↩ Torna indietro
-
+                 {% else %}
+                 {{ url_for('main.i_miei_ordini') }}
+                 {% endif %}"
+           class="btn btn-secondary">
+           ↩ Torna indietro
         </a>
-        
-    </div>
-    {% endif %}
 
-    
+    </div>
+
 </div>
-<div class="modal fade" id="modaleDatiCliente" tabindex="-1" aria-labelledby="modaleLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <form method="POST" action="{{ url_for('main.prepare_checkout_stripe', ordine_id=ordine.id) }}">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modaleLabel">Inserisci i tuoi dati</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <input type="text" name="nome" class="form-control" placeholder="Nome" required>
-          </div>
-          <div class="mb-3">
-            <input type="text" name="indirizzo" class="form-control" placeholder="Indirizzo" required>
-          </div>
-          <div class="mb-3">
-            <input type="email" name="email" class="form-control" placeholder="Email" required>
-          </div>
-          <div class="mb-3">
-            <input type="text" name="telefono" class="form-control" placeholder="Telefono" required>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-success">Conferma e paga</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-        </div>
-      </div>
-    </form>
-  </div>
-</div>
+
 {% endblock %}
