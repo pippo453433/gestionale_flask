@@ -1329,8 +1329,7 @@ def impostazioni():
         return redirect(url_for("main.impostazioni_cliente"))
 
 ######## ROUTE PER IMPOSTAZIONE CLIENTE
-
-@main.route("/impostazioni", methods=["GET"])
+@main.route("/impostazioni_cliente", methods=["GET"])
 @login_required
 def impostazioni_cliente():
     form_personali = DatiPersonaliForm(obj=current_user)
