@@ -22,16 +22,29 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
     ruolo = db.Column(db.String(20), nullable=False, default="CLIENTE")  # CLIENTE, FORNITORE, ADMIN
+    #DATI CLIENTE  personali
+    nome = db.Column(db.String(50))
+    cognome = db.Column(db.String(50))
+    telefono = db.Column(db.String(20))
+    #INDIRIZZI CLIENTE
+    indirizzo_spedizione = db.Column(db.String(255))
+    indirizzo_fatturazione = db.Column(db.String(255))
+
+    # --- PREFERENZE COMUNICAZIONI ---
+    notifiche_ordini = db.Column(db.Boolean, default=True)
+    newsletter = db.Column(db.Boolean, default=True)
+    promozioni = db.Column(db.Boolean, default=False)
+
+
     # Campi aziendali (solo per fornitori)
     company_name = db.Column(db.String(120))
     partita_iva = db.Column(db.String(20))
+    ragione_sociale = db.Column(db.String(100))
     indirizzo_azienda =db.Column(db.String(200))
     telefono_azienda = db.Column(db.String(20))
-
-    ragione_sociale = db.Column(db.String(100))
-    partita_iva = db.Column(db.String(20))
-    telefono = db.Column(db.String(20))
+    #Stripe
     stripe_customer_id = db.Column(db.String(255), nullable=True)
+    
     email_verificata = db.Column(db.Boolean, default=False)
 
     # Relazione molti-a-molti con Prodotto
@@ -113,3 +126,11 @@ class OrdineDettaglio(db.Model):
     @property
     def subtotale(self):
         return self.quantita * self.prezzo_unitario
+    
+
+class Messaggio(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(100))
+    email = db.Column(db.String(120))
+    messaggio = db.Column(db.Text)
+    data = db.Column(db.DateTime, default=datetime.utcnow)

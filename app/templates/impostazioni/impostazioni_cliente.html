@@ -1,0 +1,115 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Impostazioni Account{% endblock %}
+
+{% block content %}
+
+<h1 class="mt-4 mb-4">⚙️ Impostazioni Account</h1>
+
+<!-- DATI PERSONALI -->
+<div class="card p-4 shadow-sm mb-4">
+    <h4 class="mb-3">👤 Dati personali</h4>
+
+    <form method="POST" action="{{ url_for('main.salva_dati_personali') }}">
+        {{ form_personali.hidden_tag() }}
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                {{ form_personali.nome.label(class="form-label") }}
+                {{ form_personali.nome(class="form-control") }}
+            </div>
+
+            <div class="col-md-6 mb-3">
+                {{ form_personali.cognome.label(class="form-label") }}
+                {{ form_personali.cognome(class="form-control") }}
+            </div>
+
+            <div class="col-md-6 mb-3">
+                {{ form_personali.telefono.label(class="form-label") }}
+                {{ form_personali.telefono(class="form-control") }}
+            </div>
+
+            <div class="col-md-6 mb-3">
+                {{ form_personali.email.label(class="form-label") }}
+                {{ form_personali.email(class="form-control", readonly=True) }}
+            </div>
+        </div>
+
+        <button class="btn btn-primary">💾 Salva modifiche</button>
+    </form>
+</div>
+
+<!-- INDIRIZZI -->
+<div class="card p-4 shadow-sm mb-4">
+    <h4 class="mb-3">📦 Indirizzi</h4>
+
+    <form method="POST" action="{{ url_for('main.salva_indirizzi') }}">
+        {{ form_indirizzi.hidden_tag() }}
+
+        <div class="mb-3">
+            {{ form_indirizzi.indirizzo_spedizione.label(class="form-label") }}
+            {{ form_indirizzi.indirizzo_spedizione(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_indirizzi.indirizzo_fatturazione.label(class="form-label") }}
+            {{ form_indirizzi.indirizzo_fatturazione(class="form-control") }}
+        </div>
+
+        <button class="btn btn-primary">💾 Salva indirizzi</button>
+    </form>
+</div>
+
+<!-- SICUREZZA -->
+<div class="card p-4 shadow-sm mb-4">
+    <h4 class="mb-3">🔐 Sicurezza</h4>
+
+    <form method="POST" action="{{ url_for('main.cambia_password') }}">
+        {{ form_password.hidden_tag() }}
+
+        <div class="mb-3">
+            {{ form_password.password_attuale.label(class="form-label") }}
+            {{ form_password.password_attuale(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_password.nuova_password.label(class="form-label") }}
+            {{ form_password.nuova_password(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_password.conferma_password.label(class="form-label") }}
+            {{ form_password.conferma_password(class="form-control") }}
+        </div>
+
+        <button class="btn btn-warning">🔄 Cambia password</button>
+    </form>
+</div>
+
+<!-- PREFERENZE -->
+<div class="card p-4 shadow-sm mb-4">
+    <h4 class="mb-3">📨 Preferenze comunicazioni</h4>
+
+    <form method="POST" action="{{ url_for('main.salva_preferenze') }}">
+        {{ form_preferenze.hidden_tag() }}
+
+        <div class="form-check mb-2">
+            {{ form_preferenze.notifiche_ordini(class="form-check-input") }}
+            {{ form_preferenze.notifiche_ordini.label(class="form-check-label") }}
+        </div>
+
+        <div class="form-check mb-2">
+            {{ form_preferenze.newsletter(class="form-check-input") }}
+            {{ form_preferenze.newsletter.label(class="form-check-label") }}
+        </div>
+
+        <div class="form-check mb-2">
+            {{ form_preferenze.promozioni(class="form-check-input") }}
+            {{ form_preferenze.promozioni.label(class="form-check-label") }}
+        </div>
+
+        <button class="btn btn-primary">💾 Salva preferenze</button>
+    </form>
+</div>
+
+{% endblock %}

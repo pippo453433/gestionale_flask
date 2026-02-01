@@ -1,0 +1,90 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Impostazioni Fornitore{% endblock %}
+
+{% block content %}
+
+<h1 class="mt-4 mb-4">🏢 Impostazioni Fornitore</h1>
+
+<!-- INFO ACCOUNT -->
+<div class="card p-4 shadow-sm mb-4">
+    <h4 class="mb-3">👤 Informazioni Account</h4>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">ID Fornitore</label>
+            <input class="form-control" value="{{ current_user.id }}" readonly>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Ruolo</label>
+            <input class="form-control" value="{{ current_user.ruolo }}" readonly>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Email</label>
+            <input class="form-control" value="{{ current_user.email }}" readonly>
+        </div>
+    </div>
+</div>
+
+<!-- CAMBIO PASSWORD -->
+<div class="card p-4 shadow-sm mb-4">
+    <h4 class="mb-3">🔐 Cambia Password</h4>
+
+    <form method="POST" action="{{ url_for('main.cambia_password') }}">
+        {{ form_password.hidden_tag() }}
+
+        <div class="mb-3">
+            {{ form_password.password_attuale.label(class="form-label") }}
+            {{ form_password.password_attuale(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_password.nuova_password.label(class="form-label") }}
+            {{ form_password.nuova_password(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_password.conferma_password.label(class="form-label") }}
+            {{ form_password.conferma_password(class="form-control") }}
+        </div>
+
+        <button class="btn btn-warning">🔄 Aggiorna password</button>
+    </form>
+</div>
+
+<!-- COLLEGAMENTI RAPIDI -->
+<div class="card p-4 shadow-sm mb-4">
+    <h4 class="mb-3">🚀 Collegamenti Rapidi</h4>
+
+    <a href="{{ url_for('main.modifica_fornitore', id=current_user.id) }}" class="btn btn-outline-primary mb-2 w-100">
+        📝 Modifica dati aziendali
+    </a>
+
+    <a href="{{ url_for('main.dashboard_fornitore') }}" class="btn btn-outline-secondary mb-2 w-100">
+        📊 Dashboard vendite
+    </a>
+
+    <a href="{{ url_for('main.prodotti_fornitore') }}" class="btn btn-outline-secondary mb-2 w-100">
+        📦 Prodotti associati
+    </a>
+
+    <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-dark mb-2 w-100">
+        🚪 Logout
+    </a>
+</div>
+
+<!-- DISATTIVA ACCOUNT -->
+<div class="card p-4 shadow-sm mb-4">
+    <h4 class="mb-3 text-danger">❌ Disattiva Account</h4>
+
+    <form method="POST" action="{{ url_for('main.disattiva_account') }}">
+        <button class="btn btn-danger w-100"
+                onclick="return confirm('Sei sicuro di voler eliminare il tuo account? L’azione è irreversibile.')">
+            Disattiva account
+        </button>
+    </form>
+</div>
+
+{% endblock %}

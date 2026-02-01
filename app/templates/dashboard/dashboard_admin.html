@@ -55,6 +55,7 @@
 <div class="sidebar">
     <h2>Admin Panel</h2>
     <a href="{{ url_for('main.dashboard_admin') }}">Dashboard</a>
+    <a href="{{ url_for('main.messaggi_admin') }}">Messaggi ricevuti</a>
     <a href="{{ url_for('main.categorie') }}">Gestione Categorie</a>
     {#<a href="{{ url_for('main.prodotti') }}">Gestione Prodotti</a>#}
     <a href="{{ url_for('main.gestione_ordini_admin') }}">📦 Gestione Ordini</a>
@@ -157,6 +158,7 @@
             </div>
         </div>
         {% endfor %}
+        
     </div>
 </div>
 </body>

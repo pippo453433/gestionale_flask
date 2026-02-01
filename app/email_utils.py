@@ -17,16 +17,39 @@ def send_email(to, subject, body, pdf_buffer=None, pdf_filename="ordine.pdf"):
         "Content-Type": "application/json"
     }
 
+    # Corpo email migliorato
+    testo_plain = f"""Gentile cliente,
+
+Abbiamo ricevuto il tuo messaggio tramite il sito e ti rispondiamo con piacere.
+
+{body}
+
+Grazie per averci contattato.
+Cordiali saluti,
+Il team di Supporto
+"""
+
+    html = f"""
+    <h3>Gentile cliente,</h3>
+    <p>Abbiamo ricevuto il tuo messaggio tramite il sito e ti rispondiamo con piacere.</p>
+    <div style="margin-top: 20px; padding: 10px; background-color: #f4f4f4; border-left: 4px solid #007bff;">
+        {body}
+    </div>
+    <p style="margin-top: 30px;">Grazie per averci contattato.<br>
+    Cordiali saluti,<br>
+    <strong>Il team di Supporto</strong></p>
+    """
+
     data = {
         "personalizations": [{
             "to": [{"email": to}],
             "subject": subject
         }],
         "from": {"email": os.getenv("SENDGRID_SENDER")},
-        "content": [{
-            "type": "text/plain",
-            "value": body
-        }]
+        "content": [
+            {"type": "text/plain", "value": testo_plain},
+            {"type": "text/html", "value": html}
+        ]
     }
 
     # Se c'è un PDF, lo allego
@@ -44,7 +67,7 @@ def send_email(to, subject, body, pdf_buffer=None, pdf_filename="ordine.pdf"):
         print(f"Status: {response.status_code}")
         print(response.text)
     except Exception as e:
-        print(f"Errore invio email: {e}")  
+        print(f"Errore invio email: {e}")
 
 
 def invia_email_verifica(user):
@@ -59,9 +82,8 @@ def invia_email_verifica(user):
     <h2>Benvenuto {user.username}!</h2>
     <p>Per completare la registrazione, conferma la tua email cliccando il link qui sotto:</p>
     <p><a href="{link}">Conferma email</a></p>
-
-    
     """
+
     data = {
         "personalizations": [{
             "to": [{"email": recipient}],
@@ -73,10 +95,12 @@ def invia_email_verifica(user):
             {"type": "text/html", "value": html}
         ]
     }
+
     headers = {
         "Authorization": f"Bearer {os.getenv('SENDGRID_API_KEY')}",
         "Content-Type": "application/json"
     }
+
     response = requests.post(
         "https://api.sendgrid.com/v3/mail/send",
         headers=headers,

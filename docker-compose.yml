@@ -1,0 +1,12 @@
+services:
+  web:
+    build: .
+    container_name: gestionale_web
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - ./data:/app/data
+    command: python run.py

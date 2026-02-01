@@ -1,0 +1,139 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Termini e Condizioni{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <div class="text-center mb-5">
+        <h1 class="fw-bold">Termini e Condizioni d'Uso</h1>
+        <p class="text-muted">
+            Ultimo aggiornamento: [inserisci data]
+        </p>
+    </div>
+
+    <!-- 1. Oggetto del servizio -->
+    <section class="mb-5">
+        <h3 class="fw-semibold">1. Oggetto del servizio</h3>
+        <p>
+            Il presente sito fornisce una piattaforma gestionale che consente agli utenti registrati 
+            di accedere a funzionalità quali gestione prodotti, area personale, dashboard, 
+            acquisti online e altre funzionalità correlate.
+        </p>
+    </section>
+
+    <!-- 2. Registrazione e account -->
+    <section class="mb-5">
+        <h3 class="fw-semibold">2. Registrazione e account</h3>
+        <p>
+            Per utilizzare alcune funzionalità è necessario creare un account fornendo dati veritieri 
+            e aggiornati. L’utente è responsabile della riservatezza delle proprie credenziali 
+            e di tutte le attività svolte tramite il proprio account.
+        </p>
+        <p>
+            Il Titolare si riserva il diritto di sospendere o chiudere account in caso di uso improprio, 
+            violazioni o attività sospette.
+        </p>
+    </section>
+
+    <!-- 3. Ruoli e permessi -->
+    <section class="mb-5">
+        <h3 class="fw-semibold">3. Ruoli e permessi</h3>
+        <p>All’interno della piattaforma possono essere presenti diversi ruoli utente:</p>
+
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item"><strong>ADMIN:</strong> gestione completa del sistema.</li>
+            <li class="list-group-item"><strong>FORNITORE:</strong> gestione dei propri prodotti e ordini.</li>
+            <li class="list-group-item"><strong>CLIENTE:</strong> acquisti, carrello, area personale.</li>
+        </ul>
+    </section>
+
+    <!-- 4. Prodotti e disponibilità -->
+    <section class="mb-5">
+        <h3 class="fw-semibold">4. Prodotti e disponibilità</h3>
+        <p>
+            Le informazioni sui prodotti (descrizioni, prezzi, disponibilità) possono essere soggette 
+            a modifiche senza preavviso. Eventuali errori o discrepanze saranno corretti non appena rilevati.
+        </p>
+    </section>
+
+    <!-- 5. Pagamenti -->
+    <section class="mb-5">
+        <h3 class="fw-semibold">5. Pagamenti</h3>
+        <p>
+            I pagamenti vengono elaborati tramite sistemi sicuri di terze parti (es. Stripe). 
+            I dati della carta non vengono memorizzati sui nostri server.
+        </p>
+        <p>
+            Un ordine si considera confermato solo dopo la ricezione del pagamento.
+        </p>
+    </section>
+
+    <!-- 6. Prezzi e fatturazione -->
+    <section class="mb-5">
+        <h3 class="fw-semibold">6. Prezzi e fatturazione</h3>
+        <p>
+            I prezzi indicati sono comprensivi o esclusivi di IVA a seconda della normativa applicabile. 
+            Eventuali costi aggiuntivi saranno chiaramente indicati prima della conferma dell’ordine.
+        </p>
+    </section>
+
+    <!-- 7. Recesso e rimborsi -->
+    <section class="mb-5">
+        <h3 class="fw-semibold">7. Diritto di recesso e rimborsi</h3>
+        <p>
+            L’utente può esercitare il diritto di recesso nei casi previsti dalla legge. 
+            I rimborsi verranno elaborati tramite lo stesso metodo di pagamento utilizzato per l’acquisto.
+        </p>
+    </section>
+
+    <!-- 8. Uso corretto del servizio -->
+    <section class="mb-5">
+        <h3 class="fw-semibold">8. Uso corretto del servizio</h3>
+        <p>
+            È vietato utilizzare il sito per attività illecite, tentativi di accesso non autorizzato, 
+            distribuzione di contenuti illegali o qualsiasi comportamento che possa compromettere 
+            la sicurezza del sistema.
+        </p>
+    </section>
+
+    <!-- 9. Proprietà intellettuale -->
+    <section class="mb-5">
+        <h3 class="fw-semibold">9. Proprietà intellettuale</h3>
+        <p>
+            Tutti i contenuti presenti sul sito (testi, loghi, grafica, codice) sono protetti da copyright 
+            e non possono essere copiati, modificati o distribuiti senza autorizzazione.
+        </p>
+    </section>
+
+    <!-- 10. Limitazione di responsabilità -->
+    <section class="mb-5">
+        <h3 class="fw-semibold">10. Limitazione di responsabilità</h3>
+        <p>
+            Il servizio è fornito “così com’è”. Il Titolare non garantisce la disponibilità continua 
+            del sito né è responsabile per danni indiretti, perdita di dati o interruzioni del servizio.
+        </p>
+    </section>
+
+    <!-- 11. Modifiche ai Termini -->
+    <section class="mb-5">
+        <h3 class="fw-semibold">11. Modifiche ai Termini</h3>
+        <p>
+            Il Titolare può modificare i presenti Termini in qualsiasi momento. 
+            Le modifiche saranno pubblicate su questa pagina.
+        </p>
+    </section>
+
+    <!-- 12. Legge applicabile -->
+    <section class="mb-5">
+        <h3 class="fw-semibold">12. Legge applicabile e foro competente</h3>
+        <p>
+            I presenti Termini sono regolati dalla legge italiana. 
+            Per eventuali controversie è competente il foro di [inserisci città].
+        </p>
+    </section>
+
+</div>
+
+{% endblock %}

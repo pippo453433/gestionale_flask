@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SelectField, SubmitField
 from wtforms.validators import DataRequired, Email, EqualTo, Length
 from wtforms import ValidationError
-from wtforms import StringField, DecimalField, IntegerField, TextAreaField, SelectField, SelectMultipleField
+from wtforms import StringField, DecimalField, IntegerField, TextAreaField, SelectField, SelectMultipleField, BooleanField
 from wtforms.validators import DataRequired, Email
 
 
@@ -80,3 +80,34 @@ class SpedizioneForm(FlaskForm):
     cap = StringField('CAP', validators=[DataRequired()])
     telefono = StringField('Telefono')
     note = TextAreaField('Note')
+
+class ContattiForm(FlaskForm):
+    nome = StringField("Nome", validators=[DataRequired()])
+    email = StringField("Email", validators=[DataRequired(), Email()])
+    messaggio = StringField("Messaggio", validators=[DataRequired()])
+
+class RispostaForm(FlaskForm):
+    risposta = TextAreaField("Risposta", validators=[DataRequired()])
+
+
+class DatiPersonaliForm(FlaskForm):
+    nome = StringField("Nome")
+    cognome = StringField("Cognome")
+    telefono = StringField("Telefono")
+    email = StringField("Email")  # readonly nel template
+
+class IndirizziForm(FlaskForm):
+    indirizzo_spedizione = StringField("Indirizzo di spedizione")
+    indirizzo_fatturazione = StringField("Indirizzo di fatturazione")
+
+class PasswordForm(FlaskForm):
+    password_attuale = PasswordField("Password attuale", validators=[DataRequired()])
+    nuova_password = PasswordField("Nuova password", validators=[DataRequired()])
+    conferma_password = PasswordField("Conferma password", validators=[DataRequired()])
+
+class PreferenzeForm(FlaskForm):
+    notifiche_ordini = BooleanField("Ricevi notifiche sugli ordini")
+    newsletter = BooleanField("Iscriviti alla newsletter")
+    promozioni = BooleanField("Ricevi offerte e promozioni")
+
+

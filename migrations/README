@@ -1,1 +1,34 @@
-Single-database configuration for Flask.
+
+```markdown
+# Gestionale Flask
+
+Applicazione gestionale web sviluppata con Flask, SQLAlchemy e Docker.  
+Pensata per la gestione di clienti, fornitori, impostazioni personalizzate e flussi amministrativi.
+
+## 🚀 Funzionalità principali
+
+- Autenticazione con ruoli (admin, cliente, fornitore)
+- Dashboard dinamica con collegamenti rapidi
+- Gestione clienti e fornitori
+- Impostazioni personalizzabili per ogni utente
+- Integrazione email (SendGrid) per verifica e notifiche
+- Generazione PDF e ricevute
+- Rate limiting e sicurezza base
+- Interfaccia responsive
+
+## 🛠️ Tecnologie utilizzate
+
+- Python 3.11  
+- Flask + SQLAlchemy  
+- Jinja2 + Bootstrap  
+- SQLite (con supporto PostgreSQL)  
+- Docker + Docker Compose  
+- SendGrid API  
+- Flask-Limiter, Flask-Login, Flask-Migrate
+
+## 📦 Setup locale con Docker
+
+```bash
+git clone https://github.com/pippo453433/gestionale_flask.git
+cd gestionale_flask
+docker compose up --build

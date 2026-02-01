@@ -1,0 +1,86 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Contatti{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <div class="text-center mb-5">
+        <h1 class="fw-bold">Contatti</h1>
+        <p class="text-muted">
+            Siamo qui per aiutarti. Puoi contattarci tramite i recapiti riportati di seguito.
+        </p>
+    </div>
+
+    <!-- Sezione recapiti -->
+    <section class="mb-5">
+        <h3 class="fw-semibold">📩 Informazioni di contatto</h3>
+        <p>
+            <strong>Email supporto:</strong> 
+            <a href="mailto:supporto@tuodominio.it">supporto@tuodominio.it</a><br>
+
+            <strong>Email amministrazione:</strong> 
+            <a href="mailto:info@tuodominio.it">info@tuodominio.it</a><br>
+
+            <strong>Telefono:</strong> +39 [inserisci numero]<br>
+
+            <strong>Indirizzo:</strong> [Inserisci indirizzo completo]
+        </p>
+    </section>
+
+    <!-- Orari -->
+    <section class="mb-5">
+        <h3 class="fw-semibold">🕒 Orari di assistenza</h3>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">Lunedì – Venerdì: 09:00 – 18:00</li>
+            <li class="list-group-item">Sabato: 09:00 – 13:00</li>
+            <li class="list-group-item">Domenica e festivi: chiuso</li>
+        </ul>
+    </section>
+
+    <!-- Form di contatto (opzionale) -->
+    <section class="mb-5">
+        <h3 class="fw-semibold">📬 Invia un messaggio</h3>
+        <p class="text-muted">Compila il modulo per inviarci una richiesta.</p>
+
+        <form method="POST" action="{{ url_for('main.contatti')}}">
+            {{ form.hidden_tag() }}
+            
+            <div class="mb-3">
+                {{ form.nome.label(class="form-label") }}
+                {{ form.nome(class="form-control", placeholder="Il tuo nome") }}
+            </div>
+
+            <div class="mb-3">
+                {{ form.email.label(class="form-label") }}
+                {{ form.email(class="form-control", placeholder="La tua email") }}
+            </div>
+
+            <div class="mb-3">
+                {{ form.messaggio.label(class="form-label") }}
+                {{ form.messaggio(class="form-control", placeholder="Scrivi il tuo messaggio") }}
+            </div>
+
+            <button class="btn btn-primary">Invia</button>
+        </form>
+    </section>
+
+    <!-- Mappa (opzionale) -->
+    <section class="mb-5">
+        <h3 class="fw-semibold">📍 Dove siamo</h3>
+        <p class="text-muted">Puoi trovarci presso la nostra sede.</p>
+
+        <div class="ratio ratio-16x9">
+            <iframe 
+                src="https://www.google.com/maps/embed?pb=[INSERISCI_CODICE_MAPPA]" 
+                style="border:0;" 
+                allowfullscreen 
+                loading="lazy">
+            </iframe>
+        </div>
+    </section>
+
+</div>
+
+{% endblock %}

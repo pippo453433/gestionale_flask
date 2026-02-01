@@ -2,7 +2,7 @@ from flask import (
     Blueprint, render_template, flash, request, redirect,
     url_for, jsonify, abort, current_app, session, Response
 )
-from flask_login import login_user, login_required, current_user
+from flask_login import login_user, login_required, current_user, logout_user
 
 from app import db
 from app.models import User, Categoria, Prodotto, Ordine, OrdineDettaglio
@@ -21,7 +21,16 @@ from .forms import CategoriaForm
 from app.forms import SpedizioneForm
 from app.utils.token import verifica_token
 from app.models import User
-
+from app.forms import ContattiForm
+from app.models import Messaggio
+from app.forms import RispostaForm
+from app.email_utils import send_email
+from app.forms import (
+    DatiPersonaliForm,
+    IndirizziForm,
+    PasswordForm,
+    PreferenzeForm
+)
 
 
 
@@ -822,7 +831,7 @@ from app.models import User, Prodotto
 @login_required
 @admin_required
 def dashboard_admin():
-
+    messaggi = Messaggio.query.order_by(Messaggio.data.desc()).all()
     # Totale utenti per ruolo
     utenti_per_ruolo = (
         db.session.query(
@@ -884,6 +893,8 @@ def dashboard_admin():
         categorie=categorie,
         categoria_id=categoria_id,
         prodotti_filtrati=prodotti_filtrati,
+        messaggi=messaggi,
+        
 
         # 👉 PASSIAMO LE NUOVE STATISTICHE ALLA DASHBOARD
         totale_ordini=totale_ordini,
@@ -1253,3 +1264,188 @@ def dati_spedizione(ordine_id):
 #    db.session.commit()
 #    flash("Email confermata| ora puoi accedere")
 #    return redirect(url_for('auth.login'))
+
+
+@main.route("/privacy")
+def privacy():
+    return render_template("condizioni/privacy.html")
+
+@main.route("/termini")
+def termini():
+    return render_template("condizioni/termini.html")
+
+@main.route("/contatti", methods=["POST", "GET"])
+def contatti():
+    form = ContattiForm()
+    if request.method == "POST":
+        nome = request.form.get("nome")
+        email = request.form.get("email")
+        messaggio = request.form.get("messaggio")
+        msg = Messaggio(nome=nome, email=email, messaggio=messaggio)
+        db.session.add(msg)
+        db.session.commit()
+        flash("Messaggio inviato correttamente!", "success")
+        return redirect(url_for("main.contatti"))
+    return render_template("condizioni/contatti.html", form=form)
+
+
+@main.route("/messaggi_admin")
+@login_required
+@admin_required
+def messaggi_admin():
+    messaggi = Messaggio.query.order_by(Messaggio.data.desc()).all()
+    return render_template("dashboard/messaggi_admin.html", messaggi=messaggi)
+
+@main.route("/messaggi_admin/rispondi/<int:id>", methods=["GET", "POST"])
+@login_required
+@admin_required
+def rispondi_messaggio(id):
+    msg = Messaggio.query.get_or_404(id)
+    form = RispostaForm()
+
+    if request.method == "POST":
+        risposta = request.form.get("risposta")
+
+        send_email(
+            to=msg.email,
+            subject="Risposta alla tua richiesta",
+            body=f"Ciao {msg.nome}, \n\n{risposta}\n\nCordiali saluti."
+        )
+
+      
+
+        flash("Risposta inviata con successo!", "success")
+        return redirect(url_for("main.messaggi_admin"))
+
+    return render_template("dashboard/rispondi_messaggio.html", msg=msg, form=form)
+
+#ROUTE PER IMPOSTAZIONI GENERALI CHE SMISTA IN BASE AL RUOLO
+@main.route("/impostazioni", methods=["GET"])
+@login_required
+def impostazioni():
+    if current_user.ruolo == "FORNITORE":
+        return redirect(url_for("main.impostazioni_fornitore"))
+    else:
+        return redirect(url_for("main.impostazioni_cliente"))
+
+######## ROUTE PER IMPOSTAZIONE CLIENTE
+
+@main.route("/impostazioni", methods=["GET"])
+@login_required
+def impostazioni_cliente():
+    form_personali = DatiPersonaliForm(obj=current_user)
+    form_indirizzi = IndirizziForm(obj=current_user)
+    form_password = PasswordForm()
+    form_preferenze = PreferenzeForm(obj=current_user)
+
+    return render_template(
+        "impostazioni/impostazioni_cliente.html",
+        form_personali=form_personali,
+        form_indirizzi=form_indirizzi,
+        form_password=form_password,
+        form_preferenze=form_preferenze
+    )
+
+@main.route("/salva_dati_personali", methods=["POST"])
+@login_required
+def salva_dati_personali():
+    form = DatiPersonaliForm(request.form)
+
+    if form.validate_on_submit():
+        current_user.nome = form.nome.data
+        current_user.cognome = form.cognome.data
+        current_user.telefono = form.telefono.data
+        db.session.commit()
+        flash("Dati salvati", "success")
+    else:
+        print("Form non valido:", form.errors)
+
+    return redirect(url_for('main.impostazioni_cliente'))
+
+
+@main.route("/cambia_password", methods=["POST"])
+@login_required
+def cambia_password():
+    form = PasswordForm(request.form)
+
+    if form.validate_on_submit():
+        if not current_user.check_password(form.password_attuale.data):
+            flash("La password attuale non è corretta", "danger")
+            return redirect(url_for('main.impostazioni_cliente'))
+
+        current_user.set_password(form.nuova_password.data)
+        db.session.commit()
+        flash("Password aggiornata correttamente", "success")
+
+    return redirect(url_for('main.impostazioni_cliente'))
+
+
+@main.route("/salva_preferenze", methods=["POST"])
+@login_required
+def salva_preferenze():
+    form = PreferenzeForm(request.form)
+
+    if form.validate_on_submit():
+        current_user.notifiche_ordini = form.notifiche_ordini.data
+        current_user.newsletter = form.newsletter.data
+        current_user.promozioni = form.promozioni.data
+        db.session.commit()
+        flash("Preferenze aggiornate correttamente", "success")
+
+    return redirect(url_for('main.impostazioni_cliente'))
+
+
+@main.route("/salva_indirizzi", methods=["POST"])
+@login_required
+def salva_indirizzi():
+    form = IndirizziForm()
+
+    if form.validate_on_submit():
+        current_user.indirizzo_spedizione = form.indirizzo_spedizione.data
+        current_user.indirizzo_fatturazione = form.indirizzo_fatturazione.data
+        db.session.commit()
+        flash("Indirizzi aggiornati correttamente", "success")
+    else:
+        print("Form indirizzi non valido:", form.errors)
+
+    return redirect(url_for('main.impostazioni_cliente'))
+
+##### FINE RUOTE IMPOSTAZIONE CLIENTE
+
+#### RUOTE IMPOSTAZIONE FORNITORE
+@main.route("/impostazioni_fornitore", methods=["GET"])
+@login_required
+def impostazioni_fornitore():
+    if current_user.ruolo != "FORNITORE":
+        return redirect(url_for("main.impostazioni_cliente"))
+
+    form_password = PasswordForm()
+    return render_template(
+        "impostazioni/impostazioni_fornitore.html",
+        form_password=form_password
+    )
+
+
+@main.route("/disattiva_account", methods=["POST"])
+@login_required
+def disattiva_account():
+    # Solo fornitori possono disattivare da questa pagina
+    if current_user.ruolo != "FORNITORE":
+        flash("Non hai i permessi per disattivare questo account.", "danger")
+        return redirect(url_for("main.impostazioni_cliente"))
+
+    user_id = current_user.id
+
+    # Logout prima di eliminare
+    logout_user()
+
+    # Recupera l'utente dal DB e lo elimina
+    user = User.query.get(user_id)
+    if user:
+        db.session.delete(user)
+        db.session.commit()
+        flash("Il tuo account è stato disattivato ed eliminato definitivamente.", "success")
+    else:
+        flash("Errore: account non trovato.", "danger")
+
+    return redirect(url_for("main.index"))
